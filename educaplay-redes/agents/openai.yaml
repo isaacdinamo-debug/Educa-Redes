@@ -1,0 +1,4 @@
+interface:
+  display_name: "EducaPlay Redes"
+  short_description: "Reels verticales educativos con motion graphics y captions sincronizados"
+  default_prompt: "Usá $educaplay-redes para convertir un máster y una escaleta de EducaPlay en un reel vertical 1080×1920, con gráficos protagonistas, voz original, subtítulos palabra por palabra y QA antes de exportar."

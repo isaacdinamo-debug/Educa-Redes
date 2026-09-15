@@ -1,16 +1,33 @@
-# Contrato de producción
+# Contrato de Producción — EducaPlay Redes
 
-## Entrada y salida
+## 1. Especificaciones de Entrega y Formato
 
-Entradas mínimas: máster MP4, escaleta `.docx`, carpeta `RECURSOS/`, tema de la materia y proyecto Remotion. Salida mínima: composición 1080×1920, fuente editable, `.srt` opcional, hoja de contacto, reporte QA y MP4 H.264/AAC.
+- **Lienzo**: 1080 × 1920 píxeles (relación de aspecto 9:16).
+- **Framerate**: **25 fps** (derivado del máster nativo de EducaPlay).
+- **Códec de video**: H.264, perfil High, nivel 4.2, espacio de color Rec.709, submuestreo cromático `yuv420p`.
+- **Códec de audio**: AAC estéreo, 48.000 Hz, 320 kbps.
+- **Sonoridad integrada**: −18 a −19 LUFS (salvo másters ya normalizados a nivel comercial, manteniendo ganancia neutra `gain: 1.0` con True Peak $\le -1.0$ dBTP).
 
-## Esquema de datos
+---
+
+## 2. Esquema de Datos (`src/data.ts`)
 
 ```ts
-type SpokenWord = {text: string; from: number; to: number};
-type Scene = {
+export type SpokenWord = {
+  text: string;
+  from: number; // frame de inicio (inclusivo)
+  to: number;   // frame de finalización (exclusivo)
+};
+
+export type CaptionPage = {
+  from: number;
+  to: number;
+  words: SpokenWord[];
+};
+
+export type Scene = {
   key: string;
-  kind: string;
+  kind: 'countdown' | 'question' | 'flood' | 'rain' | 'uncertainty' | 'choice' | 'cta' | string;
   from: number;
   to: number;
   kicker: string;
@@ -18,47 +35,92 @@ type Scene = {
   rank: 'didactico' | 'refuerzo';
   beats: Record<string, number>;
   media?: string;
-  copy?: {value?: string; label?: string; supporting?: string; highlight?: string; options?: string[]};
+  copy?: {
+    value?: string;
+    label?: string;
+    supporting?: string;
+    highlight?: string;
+    options?: string[];
+  };
+};
+
+export type EpisodeData = {
+  id: string;
+  master: string;
+  fps: number;
+  durationInFrames: number;
+  captions: CaptionPage[];
+  scenes: Scene[];
 };
 ```
 
-Los tiempos se expresan en frames de la composición. `from` es inclusivo y `to` exclusivo. Toda escena debe durar al menos 2,4 s salvo una palabra-cue deliberadamente breve, que se documenta como excepción.
+---
 
-## Layout social de referencia
+## 3. Geometría y Zonas Seguras (`src/layout.ts`)
 
 ```ts
-const SOCIAL = {
-  width: 1080, height: 1920,
-  safe: {top: 280, right: 180, bottom: 680, left: 80},
-  graphicTop: 380, graphicBottom: 1056,
-  captionTop: 1100, captionHeight: 140,
-  captionFont: 54, captionLineHeight: 1.08,
+export const LAYOUT = {
+  canvas: { width: 1080, height: 1920 },
+  card: { x: 90, y: 340, width: 840, height: 570 },
+  captions: { x: 90, y: 940, width: 840, height: 184 },
+  safeMargins: { top: 280, bottom: 270, right: 140, left: 90 },
+};
+
+export const fitMedia = (
+  native: { width: number; height: number },
+  maxW: number,
+  maxH: number
+) => {
+  const scale = Math.min(maxW / native.width, maxH / native.height);
+  return {
+    width: Math.round(native.width * scale),
+    height: Math.round(native.height * scale),
+  };
 };
 ```
 
-Estos valores protegen el header, el área central de lectura y la interfaz inferior de Reels. Ajustalos sólo si el proyecto tiene medición propia; si cambiás el área de captions, actualizá el piso de slots y el checker juntos.
+---
 
-### Variante `open` (sin marco)
+## 4. Tipografía y Colores Institucionales
 
-`visualStyle: 'open'` deja los gráficos sobre el máster. Los subtítulos siguen sobre una superficie clara y el texto directo sobre el fondo se valida con ocho frames reales. Los recursos se muestran con `contain` cuando son evidencia; no se recortan ni recolorean.
+- **`MuseoDisplay`**: `Museo700-Regular.otf` (pesos 700 para titulares destacados).
+- **`MuseoText`**: `MuseoSansRounded700.otf` (pesos 700 redondeado para subtítulos, kickers y botones).
+- **`MuseoLight`**: `Museo300-Regular.otf` (peso 300 para textos explicativos y apoyos).
+- **Superficie de lectura (`PAPER`)**: `#F7FFFC`.
+- **Tinta institucional (`INK`)**: `#0C2B24`.
+- **Acento temático (`ACCENT`)**: `#17613B`.
+- **Resaltado de palabra activa**: `#FFF6C4` con `text-decoration: underline`.
+- **Barra arcoíris (`FRAME_COLORS`)**:
+  - Rosa: `#EC0A63`
+  - Amarillo: `#F7C515`
+  - Cian: `#2BB8D6`
+  - Verde: `#23B545`
 
-El proyecto de referencia en [`../remotion/`](../remotion/) espera `public/media/master.mp4` y assets en `public/media/resources/`.
+---
 
-## Alineación DTW
+## 5. Protocolo de Sonda QA (`__EDUCA_QA__`)
 
-Whisper.cpp emite `t_dtw` como el momento aproximado en que se produce un token. Para agruparlo en palabras, ordená los tokens de texto, ignorá tokens especiales y usá el último `t_dtw` del grupo como final de palabra. El inicio es el final anterior, limitado por el inicio convencional del segmento para no absorber silencios. Distribuí marcas finales iguales entre las palabras del grupo. Guardá el JSON crudo y un `alignment.json` derivado; no sobreescribas `words.json` generado por otra etapa.
+Durante la ejecución de `npm run check`, Remotion evalúa fotogramas con `qa: true`. El navegador emite a consola una línea serializada en JSON:
 
-La documentación de Whisper declara que `t_dtw` sólo debe usarse cuando se calcularon timestamps DTW. La implementación de referencia agrupa tokens por espacios y usa la marca DTW final de cada palabra; esa misma convención evita los saltos de karaoke observados en la primera pasada.
+```json
+__EDUCA_QA__{"frame": 331, "errors": [], "fonts": "loaded"}
+```
 
-## Audio y publicación
+Si se detectan anomalías, `errors` acumula mensajes descriptivos:
+- `"Fuera de región: <asset>"`: el elemento desborda su contenedor declarado.
+- `"Texto desbordado: <texto>"`: alguna caja de texto sobrepasa los límites del contenedor.
+- `"Proporción alterada"`: el elemento no conserva su aspecto nativo registrado.
+- `"Más de dos líneas"`: las palabras de subtítulo ocupan tres o más renglones.
+- `"Palabra activa incorrecta"`: la cantidad o índice de palabras con `data-active="true"` no coincide con el rango temporal de `DATA.words`.
 
-Medí el programa completo, no un fragmento. Mantén la mezcla original salvo la ganancia necesaria para −18/−19 LUFS. Exportá color Rec.709 explícito y `yuv420p` para compatibilidad móvil. Verificá con `ffprobe` que el resultado sea 1080×1920, 30 fps, AAC 48 kHz, duración igual a la voz y sin frames negros no intencionales.
+---
 
-## Checklist visual
+## 6. Checklist de Publicación y Aprobación
 
-- El logo y el header se mantienen dentro del margen superior.
-- El gráfico principal nunca entra en el área de captions.
-- Hay una sola palabra activa y el resaltado se apaga al terminar su intervalo.
-- Cada recurso declara `didactico` o `refuerzo` y el crédito de una recreación queda visible cuando corresponde.
-- El cierre tiene CTA legible sin depender de texto en el tercio inferior.
-- La hoja de contacto se mira a tamaño de teléfono antes de publicar.
+- [ ] Duración en frames coincide exactamente con el audio del máster.
+- [ ] No existen palabras activas fuera de su intervalo de voz.
+- [ ] Subtítulos no superan las 2 líneas en ningún fotograma.
+- [ ] Todos los recursos (`media/resources/*`) están medidos en `layout.ts` y no sufren distorsión.
+- [ ] Ejecución de `npm run typecheck` sin errores.
+- [ ] Ejecución de `npm run check` completada con 0 errores en los 60 fotogramas de prueba.
+- [ ] Exportación en `out/educaplay-redes.mp4` visualizada y aprobada en formato móvil real.

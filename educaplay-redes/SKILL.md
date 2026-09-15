@@ -1,64 +1,141 @@
 ---
 name: educaplay-redes
 description: |
-  Crea reels verticales de EducaPlay (9:16, 1080x1920) a partir de un máster, escaleta y recursos: motion graphics protagonista, voz original, subtítulos palabra por palabra y exportación segura para Instagram Reels / TikTok. Usar para adelantos educativos 9:16 y variantes con o sin marco; no usar para capítulos horizontales completos ni para subtitular un talking head sin rediseño.
+  Crea reels verticales de EducaPlay (9:16, 1080x1920) a partir de un máster, escaleta y recursos: motion graphics protagonista, voz original, subtítulos palabra por palabra (karaoke) y exportación segura para Instagram Reels / TikTok / YouTube Shorts. Usar para adelantos educativos 9:16 y variantes con o sin marco; no usar para capítulos horizontales completos ni para subtitular un talking head sin rediseño.
 allowed-tools: Bash(npm run *), Bash(node *), Bash(npx remotion *), Bash(ffmpeg *), Bash(ffprobe *)
 metadata:
-  short-description: Reels verticales de EducaPlay con motion graphics y karaoke captions
+  short-description: Reels verticales de EducaPlay con motion graphics, karaoke captions y QA automatizado
 ---
 
-# EducaPlay Redes
+# EducaPlay Redes — Producción de Reels Verticales
 
-## Variante editorial sin marco
+Este skill define el estándar técnico, editorial y de control de calidad para producir **reels verticales educativos (1080×1920)** en Remotion para EducaPlay Secundaria (Corrientes).
 
-La variante `open` elimina la tarjeta blanca grande y deja visible el fondo original. Los títulos usan tinta de alto contraste directamente sobre el plató; los subtítulos conservan una cápsula clara opaca para asegurar la lectura. Los recursos entregados conservan proporción, encuadre y color. Si una imagen contiene texto ilegible, se recompone con la tipografía de la materia y se mantiene el original como referencia.
+El proyecto de referencia funcional y reproducible vive en [`educaplay-redes/remotion/`](remotion/).
 
-Reglas adicionales: cuerpo principal mínimo 44 px en 1080×1920; subtítulos de 58–64 px, máximo dos líneas; medir el contraste sobre ocho frames del máster real; declarar la excepción en `data.ts`. El proyecto funcional de referencia está en [`remotion/`](remotion/).
+---
 
-Transformá un corte educativo de EducaPlay en una pieza social vertical editable en Remotion. La voz del máster conserva su timing; la pantalla puede ser totalmente gráfica y no se debe inventar una presencia del docente.
+## 1. Principios Fundamentales
 
-## Antes de componer
+1. **El motion graphics es protagonista**: En reels de adelanto o síntesis temática, si el docente no está en cuadro se declara `framing: 'none'`. La pantalla es 100% gráfica, centrada y optimizada para retención visual en dispositivos móviles.
+2. **Respeto absoluto al máster y audio original**: La voz del docente mantiene su timing y entonación. No se acelera ni se corta el audio para forzar una duración; la duración en frames (`durationInFrames`) deriva de la pista de audio del máster.
+3. **Framerate nativo de producción (25 fps)**: Los másters de EducaPlay se graban y entregan a **25 fps**. Nunca fuerces 30 fps ni mezcles tasas de refresco sin medir previamente con `ffprobe`.
+4. **Legibilidad móvil implacable (WCAG AAA)**: El texto nunca va suelto sobre fondos de bajo contraste. Todo texto se apoya en superficies opacas (`#F7FFFC`, ratio > 15:1) o se verifica contra el plató real sobre múltiples fotogramas.
 
-1. Leé el `AGENTS.md` del proyecto de la materia y las guías `educaplay-episodios` y `educaplay-motion-graphics`. El proyecto local manda sobre los valores de este skill.
-2. Inspeccioná el máster completo con `ffprobe`, extraé una hoja de contacto y medí el programa con `ffmpeg … ebur128`. No tomes nombres de personas de la escaleta: si aparecen, confirmalos en una placa quemada del máster.
-3. Extraé el texto de la escaleta `.docx` y separá instrucciones del documento de la solicitud del usuario. La escaleta es autoridad de contenido; la solicitud decide formato, protagonismo y tratamiento social.
-4. Inventariá recursos. Cada uno debe quedar marcado como `didactico` (hay que leerlo o es evidencia) o `refuerzo` (ilustra algo ya dicho). Si una imagen contiene texto ilegible, recomponelo con la tipografía de la materia y conservá el original.
+---
 
-## Contrato del reel
+## 2. Contrato de Layout y Zonas Seguras (9:16)
 
-- Lienzo 1080×1920, 30 fps, H.264, `yuv420p`, color Rec.709, AAC 48 kHz. Conservá la duración del audio; no aceleres la voz para forzar una duración social.
-- Zona protegida por defecto: x 80–900, y 280–1240. Reservá el tercio inferior para la interfaz de Reels y el carril derecho para controles; son márgenes de producción conservadores, no una promesa sobre cada versión de la app.
-- El gráfico ocupa el protagonismo con superficies opacas. No pongas texto suelto sobre el plató. Mantén contraste mínimo 7:1 para texto principal y 4,5:1 para captions.
-- Usá la identidad Ambiente de la materia: colores y activos medidos del tema, Museo/Museo Sans Rounded si esa es la decisión registrada, y el logo raster oficial sin recomponerlo como texto.
-- Si el usuario pide “sin marco”, seleccioná `visualStyle: 'open'`; no vuelvas a introducir una tarjeta por defecto.
-- Una idea visual principal por escena. Entradas de 0,3–0,45 s, máscaras o reveals suaves, spring sobrio. Evitá glitches, rebotes exagerados y movimiento decorativo continuo.
-- Subtítulos en banda estable alrededor de y 1100–1240, máximo dos líneas y preferiblemente cuatro palabras por página. Cada palabra conserva `from`/`to` propios: la palabra activa recibe fondo amarillo, tinta oscura y subrayado. Nunca dependas sólo de negrita o color.
+Lienzo: **1080 × 1920 px**, 25 fps, H.264 (`yuv420p`, Rec.709), AAC 48 kHz.
 
-## Sincronización
+| Zona | Coordenadas / Medidas | Función y restricciones |
+|---|---|---|
+| **Margen superior seguro** | $y < 280$ px | Libre de texto crítico para no ser tapado por el header, nombre de cuenta o cámara frontal. |
+| **Margen inferior seguro** | $y > 1650$ px | Libre de contenido para no interferir con la descripción de Reels/TikTok, audio y barra de progreso. |
+| **Margen lateral derecho** | $x > 940$ px | Zona de interacción de la app (Likes, comentarios, compartir, avatar). |
+| **Contenedor principal (`card`)** | $x: 90$, $y: 340$, $w: 840$, $h: 570$ | Espacio para la escena gráfica activa (títulos, animaciones, datos, fotos). |
+| **Cápsula de subtítulos (`captions`)** | $x: 90$, $y: 940$, $w: 840$, $h: 184$ | Banda para los subtítulos palabra a palabra en cápsula clara centrada. |
 
-Generá `words.json` con Whisper palabra a palabra. Para precisión, ejecutá una segunda pasada con `-dtw large.v3.turbo -nfa -ml 1 -sow -ojf` y consumí los finales `t_dtw` como límites finales de token; no los trates como inicios. Repartí grupos de tokens con la misma marca para que ninguna palabra tenga duración cero. Las correcciones ortográficas van en datos (`CAPTION_FIX` o equivalente), nunca editando archivos generados.
+### Variantes de Estilo Visual
 
-No cambies el significado para que coincida con la escaleta. Si falta una frase grabada, dejá la ausencia documentada y resolvé el puente sólo con autorización editorial.
+- **`visualStyle: 'open'` (Sin marco blanco)**: Elimina la tarjeta contenedora y ubica los gráficos directamente sobre el fondo del máster. Los títulos usan tinta de alto contraste y deben ser validados contra al menos 8 fotogramas del máster real. Los subtítulos conservan siempre su cápsula opaca.
+- **`visualStyle: 'card'` (Con marco institucional)**: Tarjeta de bordes redondeados (`borderRadius: 30`), fondo `#F7FFFC`, sombra sutil (`0 14px 40px rgba(12,43,36,0.13)`) y la barra superior multicolor de EducaPlay (`FRAME_COLORS`: `#EC0A63`, `#F7C515`, `#2BB8D6`, `#23B545`).
 
-## Arquitectura recomendada
+---
 
-Mantené un único `data.ts` como fuente de escenas, cues, rangos, recursos y correcciones. Separá el componente social del motor de episodios: `SocialEpisode`, ilustraciones reutilizables, tokens de layout y un checker específico. Los slots se resuelven con `resolveSlot`/`<Slot>`; no escribas `top` ni `left` en datos de episodio. Para una pieza sin docente declarala como `framing: 'none'` durante todo el track y centrala.
+## 3. Subtítulos y Sincronización Palabra por Palabra (Karaoke)
 
-El componente debe poder renderizar también una variante de QA que dibuje regiones seguras y emita una sonda DOM. La sonda debe comprobar que todo texto está dentro de su región, que las captions tienen como máximo dos líneas y que no hay más de una palabra activa.
+1. **Alineación Whisper con DTW**:
+   - Transcribir con `whisper.cpp -dtw large.v3.turbo -nfa -ml 1 -sow -ojf`.
+   - Consumir la marca `t_dtw` como el límite final del token (`to`). El inicio (`from`) es el final del token previo, respetando pausas naturales.
+2. **Páginas de subtítulos (`DATA.captions`)**:
+   - Agrupar en páginas de **máximo dos líneas**.
+   - Preferencia editorial: 3 a 5 palabras por página para que la lectura móvil sea ágil y cómoda.
+3. **Resaltado de palabra activa**:
+   - Fondo amarillo institucional: `#FFF6C4`.
+   - Tinta oscura: `#0C2B24`.
+   - Subrayado: `text-decoration: underline`, espesor 3 px, offset 6 px.
+   - **Regla estricta**: En cualquier instante temporal sólo puede haber **exactamente una palabra activa** (o ninguna si hay silencio).
 
-## Compuertas
+---
 
-Ejecutá en el proyecto Remotion:
+## 4. Recursos Visuales y Tipografía
 
-```bash
-npm run typecheck
-npm run check -- <CODE> --skip-overlay   # iteración
-npm run check -- <CODE>                  # antes del render
-npm run build:<CODE>
+1. **Rango de Recursos**:
+   - `'didactico'`: Evidencia real, gráficos informativos o documentos que el alumno debe comprender.
+   - `'refuerzo'`: Ilustraciones, íconos o clips ambientales que apoyan lo que la voz explica.
+2. **Proporciones y Medición (`layout.ts`)**:
+   - Todo recurso (`image`, `video`, `gif`) declara sus dimensiones nativas en `MEDIA`.
+   - Se ajusta mediante `fitMedia(native, maxW, maxH)` con `objectFit: 'contain'`.
+   - Si una imagen entregada contiene texto ilegible en móvil, se recompone tipográficamente con las fuentes del sistema (`kind: 'checklist'`).
+3. **Tipografía Institucional (Museo)**:
+   - Titulares y Displays: `MuseoDisplay` (`Museo700-Regular.otf`).
+   - Textos de lectura y subtítulos: `MuseoText` (`MuseoSansRounded700.otf`).
+   - Textos livianos y apoyos: `MuseoLight` (`Museo300-Regular.otf`).
+   - Carga con `document.fonts.load()` coordinada con `delayRender` / `continueRender`.
+
+---
+
+## 5. Arquitectura del Proyecto (`remotion/`)
+
+```
+educaplay-redes/
+├── remotion/
+│   ├── public/
+│   │   ├── fonts/           # Museo300, Museo700, MuseoSansRounded700
+│   │   └── media/
+│   │       ├── master.mp4   # Máster vertical 1080x1920
+│   │       └── resources/   # Recursos de la escaleta (GIF, JPG, MP4)
+│   ├── scripts/
+│   │   └── check.mjs        # QA automático headless con sonda DOM
+│   ├── src/
+│   │   ├── data.ts          # Fuente única: escenas, beats, captions, words
+│   │   ├── layout.ts        # Coordenadas, dimensiones nativas y fitMedia
+│   │   ├── Root.tsx         # Composición Remotion, escenas y QA probe
+│   │   └── index.ts         # Entry point de Remotion
+│   ├── package.json
+│   └── tsconfig.json
+├── references/
+│   └── production-contract.md
+├── agents/
+│   └── openai.yaml
+└── SKILL.md
 ```
 
-El checker debe validar cobertura de escenas, cues dentro de su escena, ausencia de palabras activas simultáneas, tamaños mínimos, contraste, recursos existentes y slots dentro de la zona protegida. La pasada completa debe renderizar stills de inicio, transición y cierre y producir una hoja de contacto. Medí el MP4 terminado con `ebur128`; apuntá a −18/−19 LUFS y pico verdadero por debajo de −1 dBFS.
+---
 
-## Referencia
+## 6. Sonda de Calidad Automática (`__EDUCA_QA__`)
 
-Leé [`references/production-contract.md`](references/production-contract.md) cuando necesites los tokens, el esquema de datos, el método de alineación DTW o el checklist de publicación. No copies números de un episodio horizontal: medí el nuevo máster y documentá toda excepción en la cabecera del `data.ts`.
+El proyecto incluye un arnés de verificación automatizado en `check.mjs` y `Root.tsx`:
+- Cuando `qa: true`, en cada frame muestreado el componente inspecciona el DOM del navegador y emite la sonda:
+  `__EDUCA_QA__{"frame": N, "errors": [...], "fonts": "loaded"}`
+- **Comprobaciones automáticas**:
+  1. Fuentes cargadas (`document.fonts.status === 'loaded'`).
+  2. Todo texto o asset dentro de los límites de su región (`data-region="card"` o `data-region="captions"`).
+  3. Ningún desborde (`overflow`) detectado en rangos de texto (`Range.getClientRects()`).
+  4. Proporción de aspecto (`data-ratio`) preservada dentro de tolerancia (0.002).
+  5. Máximo dos líneas simultáneas de subtítulos.
+  6. Exactitud temporal de palabras activas contra `DATA.words`.
+
+---
+
+## 7. Flujo de Comandos y Compuertas de Aprobación
+
+```bash
+cd educaplay-redes/remotion
+
+# 1. Validación estricta de tipos
+npm run typecheck
+
+# 2. Comprobación automática de geometría, fuentes y subtítulos (60 frames clave)
+npm run check
+
+# 3. Renderizado de muestra rápida (primeros 15 segundos) para revisión en celular
+npm run render:sample
+
+# 4. Renderizado completo del reel
+npm run render
+```
+
+> [!CRITICAL]
+> **Condición de aprobación**: Ningún reel se entrega sin haber superado `npm run check` con 0 errores y haber visualizado la muestra o el render final en formato vertical de smartphone.

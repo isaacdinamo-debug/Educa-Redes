@@ -7,9 +7,13 @@ package-lock.json
 out/
 .remotion/
 
-# Heavy media assets
+# Media assets
 *.mp4
 *.mov
 *.m4a
 *.wav
-!public/media/.gitkeep
+*.jpg
+*.jpeg
+*.png
+*.gif
+!**/public/media/**/.gitkeep

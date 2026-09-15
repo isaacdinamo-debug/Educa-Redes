@@ -1,1 +1,16 @@
-{"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Node","jsx":"react-jsx","strict":true,"noEmit":true,"allowImportingTsExtensions":true,"skipLibCheck":true,"lib":["DOM","ESNext"]},"include":["src"]}
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+  },
+  "include": ["src"]
+}

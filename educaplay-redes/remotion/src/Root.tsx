@@ -5,13 +5,13 @@ import {DATA,FRAME_COLORS} from './data';
 import {LAYOUT,MEDIA,fitMedia} from './layout.ts';
 
 const INK='#0C2B24',PAPER='#F7FFFC',ACCENT='#17613B';
-const fonts=`@font-face{font-family:MuseoDisplay;src:url('${staticFile('fonts/Museo700-Regular.otf')}');font-weight:700;font-display:block;}
+export const fonts=`@font-face{font-family:MuseoDisplay;src:url('${staticFile('fonts/Museo700-Regular.otf')}');font-weight:700;font-display:block;}
 @font-face{font-family:MuseoText;src:url('${staticFile('fonts/MuseoSansRounded700.otf')}');font-weight:700;font-display:block;}
 @font-face{font-family:MuseoLight;src:url('${staticFile('fonts/Museo300-Regular.otf')}');font-weight:300;font-display:block;}`;
 const ease=(f:number,start=0,n=20)=>interpolate(f,[start,start+n],[0,1],{extrapolateLeft:'clamp',extrapolateRight:'clamp',easing:Easing.bezier(.22,1,.36,1)});
 type Scene=typeof DATA.scenes[number];
 
-function useFontsAndQA(qa:boolean,frame:number){
+export function useFontsAndQA(qa:boolean,frame:number){
  const [handle]=useState(()=>delayRender('Museo y composición'));
  useEffect(()=>{let cancelled=false;
  Promise.all([document.fonts.load('700 90px MuseoDisplay'),document.fonts.load('700 62px MuseoText'),document.fonts.load('300 54px MuseoLight')]).then(()=>document.fonts.ready).then(()=>{
@@ -39,7 +39,7 @@ const Label:React.FC<{children:React.ReactNode}>=({children})=><div data-text st
 const Heading:React.FC<{children:React.ReactNode;size?:number;light?:boolean}>=({children,size=74,light})=><div data-text style={{fontFamily:light?'MuseoLight':'MuseoDisplay',fontWeight:light?300:700,fontSize:size,letterSpacing:-1.4,lineHeight:1.05}}>{children}</div>;
 const Reveal:React.FC<{children:React.ReactNode;delay?:number}>=({children,delay=0})=>{const p=ease(useCurrentFrame(),delay,18);return <div style={{opacity:p,transform:`translateY(${14*(1-p)}px)`,clipPath:`inset(0 0 ${100*(1-p)}% 0)`}}>{children}</div>;};
 
-const Media:React.FC<{src:string;w:number;h:number}>=({src,w,h})=>{
+export const Media:React.FC<{src:string;w:number;h:number}>=({src,w,h})=>{
  const m=MEDIA[src];if(!m)throw Error('Falta medición: '+src);const size=fitMedia(m,w,h);
  return <div data-asset={src} data-ratio={m.width/m.height} style={{...size,flexShrink:0,display:'flex'}}>{m.kind==='gif'?<Gif src={staticFile(src)} width={size.width} height={size.height} fit="contain"/>:m.kind==='video'?<OffthreadVideo muted src={staticFile(src)} style={{...size,objectFit:'contain',display:'block'}}/>:<Img src={staticFile(src)} style={{...size,objectFit:'contain',display:'block'}}/>}</div>;
 };

@@ -7,7 +7,8 @@
     "typecheck": "tsc --noEmit",
     "check": "node --experimental-strip-types scripts/check.mjs",
     "render:sample": "remotion render EducaPlayRedes out/sample-15s.mp4 --frames=0-374",
-    "render": "remotion render EducaPlayRedes out/educaplay-redes.mp4"
+    "render": "remotion render EducaPlayRedes out/educaplay-redes.mp4",
+    "render:cuaderno": "remotion render EducaPlayCuaderno out/cuaderno-15s/render.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --color-space=bt709 --concurrency=4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.498",

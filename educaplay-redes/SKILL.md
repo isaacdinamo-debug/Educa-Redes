@@ -1,11 +1,19 @@
 ---
 name: educaplay-redes
-description: Crea reels verticales de EducaPlay a partir de un máster, escaleta y recursos: motion graphics protagonista, voz original, subtítulos palabra por palabra y exportación segura para Instagram. Usar para adelantos educativos 9:16; no usar para capítulos horizontales completos ni para subtitular un talking head sin rediseño.
+description: |
+  Crea reels verticales de EducaPlay (9:16, 1080x1920) a partir de un máster, escaleta y recursos: motion graphics protagonista, voz original, subtítulos palabra por palabra y exportación segura para Instagram Reels / TikTok. Usar para adelantos educativos 9:16 y variantes con o sin marco; no usar para capítulos horizontales completos ni para subtitular un talking head sin rediseño.
+allowed-tools: Bash(npm run *), Bash(node *), Bash(npx remotion *), Bash(ffmpeg *), Bash(ffprobe *)
 metadata:
   short-description: Reels verticales de EducaPlay con motion graphics y karaoke captions
 ---
 
 # EducaPlay Redes
+
+## Variante editorial sin marco
+
+La variante `open` elimina la tarjeta blanca grande y deja visible el fondo original. Los títulos usan tinta de alto contraste directamente sobre el plató; los subtítulos conservan una cápsula clara opaca para asegurar la lectura. Los recursos entregados conservan proporción, encuadre y color. Si una imagen contiene texto ilegible, se recompone con la tipografía de la materia y se mantiene el original como referencia.
+
+Reglas adicionales: cuerpo principal mínimo 44 px en 1080×1920; subtítulos de 58–64 px, máximo dos líneas; medir el contraste sobre ocho frames del máster real; declarar la excepción en `data.ts`. El proyecto funcional de referencia está en [`remotion/`](remotion/).
 
 Transformá un corte educativo de EducaPlay en una pieza social vertical editable en Remotion. La voz del máster conserva su timing; la pantalla puede ser totalmente gráfica y no se debe inventar una presencia del docente.
 
@@ -22,6 +30,7 @@ Transformá un corte educativo de EducaPlay en una pieza social vertical editabl
 - Zona protegida por defecto: x 80–900, y 280–1240. Reservá el tercio inferior para la interfaz de Reels y el carril derecho para controles; son márgenes de producción conservadores, no una promesa sobre cada versión de la app.
 - El gráfico ocupa el protagonismo con superficies opacas. No pongas texto suelto sobre el plató. Mantén contraste mínimo 7:1 para texto principal y 4,5:1 para captions.
 - Usá la identidad Ambiente de la materia: colores y activos medidos del tema, Museo/Museo Sans Rounded si esa es la decisión registrada, y el logo raster oficial sin recomponerlo como texto.
+- Si el usuario pide “sin marco”, seleccioná `visualStyle: 'open'`; no vuelvas a introducir una tarjeta por defecto.
 - Una idea visual principal por escena. Entradas de 0,3–0,45 s, máscaras o reveals suaves, spring sobrio. Evitá glitches, rebotes exagerados y movimiento decorativo continuo.
 - Subtítulos en banda estable alrededor de y 1100–1240, máximo dos líneas y preferiblemente cuatro palabras por página. Cada palabra conserva `from`/`to` propios: la palabra activa recibe fondo amarillo, tinta oscura y subrayado. Nunca dependas sólo de negrita o color.
 

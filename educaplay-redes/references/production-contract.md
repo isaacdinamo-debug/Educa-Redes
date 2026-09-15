@@ -38,6 +38,12 @@ const SOCIAL = {
 
 Estos valores protegen el header, el área central de lectura y la interfaz inferior de Reels. Ajustalos sólo si el proyecto tiene medición propia; si cambiás el área de captions, actualizá el piso de slots y el checker juntos.
 
+### Variante `open` (sin marco)
+
+`visualStyle: 'open'` deja los gráficos sobre el máster. Los subtítulos siguen sobre una superficie clara y el texto directo sobre el fondo se valida con ocho frames reales. Los recursos se muestran con `contain` cuando son evidencia; no se recortan ni recolorean.
+
+El proyecto de referencia en [`../remotion/`](../remotion/) espera `public/media/master.mp4` y assets en `public/media/resources/`.
+
 ## Alineación DTW
 
 Whisper.cpp emite `t_dtw` como el momento aproximado en que se produce un token. Para agruparlo en palabras, ordená los tokens de texto, ignorá tokens especiales y usá el último `t_dtw` del grupo como final de palabra. El inicio es el final anterior, limitado por el inicio convencional del segmento para no absorber silencios. Distribuí marcas finales iguales entre las palabras del grupo. Guardá el JSON crudo y un `alignment.json` derivado; no sobreescribas `words.json` generado por otra etapa.

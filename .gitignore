@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Node & Remotion
+node_modules/
+package-lock.json
+out/
+.remotion/
+
+# Heavy media assets
+*.mp4
+*.mov
+*.m4a
+*.wav
+!public/media/.gitkeep

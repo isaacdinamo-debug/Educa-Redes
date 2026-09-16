@@ -4,6 +4,23 @@ Skill para producir **reels verticales educativos (1080×1920)** en Remotion par
 
 El paquete del skill y el proyecto de referencia funcional viven en [`educaplay-redes/`](educaplay-redes/).
 
+## Variante elegida: estilo cuaderno
+
+Isaac eligió la muestra **Estilo cuaderno · 15 segundos** el 16 de septiembre de 2026 como referencia visual para continuar el trabajo. La composición es `EducaPlayCuaderno`, implementada en `src/Notebook.tsx`. La selección corresponde a esta muestra de 15 segundos; el reel completo sigue siendo una composición independiente.
+
+Para revisar y reproducir la variante elegida:
+
+```bash
+cd educaplay-redes/remotion
+npm install
+# Preparar el máster y los recursos locales indicados en src/data.ts y src/layout.ts.
+npm run check -- --notebook
+npm run render:cuaderno
+ffmpeg -i out/cuaderno-15s/render.mp4 -i public/media/master.mp4 -map 0:v:0 -map 1:a:0 -c copy -t 15 -movflags +faststart out/cuaderno-15s/propuesta-cuaderno-15s.mp4
+```
+
+El resultado es `out/cuaderno-15s/propuesta-cuaderno-15s.mp4`, con el audio original del máster. Consultar [las decisiones visuales y de movimiento](educaplay-redes/remotion/PROPUESTA_CUADERNO.md). Los medios de entrada y el video renderizado se conservan localmente y no se incluyen en Git.
+
 ---
 
 ## Estructura del Repositorio
@@ -18,7 +35,7 @@ El paquete del skill y el proyecto de referencia funcional viven en [`educaplay-
 
 ---
 
-## Flujo de Trabajo Rápido
+## Flujo del reel completo y prototipo anterior
 
 ```bash
 cd educaplay-redes/remotion

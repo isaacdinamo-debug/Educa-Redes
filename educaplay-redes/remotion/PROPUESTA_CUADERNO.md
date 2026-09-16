@@ -1,6 +1,8 @@
-# Cuaderno ilustrado — prueba de movimiento
+# Cuaderno ilustrado — variante elegida
 
-Propuesta independiente de 15 segundos para comparar con el prototipo aprobado.
+Variante de 15 segundos elegida por Isaac el 16 de septiembre de 2026 como
+referencia visual para continuar el trabajo. Esta selección corresponde a la
+muestra `propuesta-cuaderno-15s.mp4`, no a una versión completa del reel.
 Mantiene Museo, el fondo y audio originales, la franja de cuatro colores y los
 recursos completos. Se desarrolla en Remotion, a 1080×1920 y 25 fps.
 

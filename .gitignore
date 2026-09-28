@@ -1,19 +1,27 @@
 # macOS
 .DS_Store
 
-# Node & Remotion
+# Node
 node_modules/
-package-lock.json
-out/
-.remotion/
 
-# Media assets
+# Medios: viven en disco local, nunca en git
+reels/*/media/
+reels/*/assets/
+reels/*/render/
+reels/*/revision/stills/
+reels/*/*.aep
+reels/*/*.aep */
+models/
 *.mp4
 *.mov
 *.m4a
 *.wav
-*.jpg
-*.jpeg
-*.png
 *.gif
-!**/public/media/**/.gitkeep
+*.png
+*.jpeg
+*.jpg
+# …salvo la hoja de contacto, que es la evidencia de revisión
+!reels/*/revision/contacto.jpg
+
+# Restos locales de la versión Remotion (medios, renders, node_modules): ver docs/MIGRACION.md
+educaplay-redes/

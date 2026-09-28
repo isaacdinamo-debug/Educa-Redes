@@ -1,0 +1,782 @@
+{
+ "code": "AMB26-04-REEL",
+ "generatedBy": "scripts/export-ae.mjs — no editar a mano: se regenera",
+ "title": "Plan B: protocolo para una inundación",
+ "series": "Educación Ambiental Integral",
+ "fps": 25,
+ "width": 1080,
+ "height": 1920,
+ "duration": 1129,
+ "master": "media/master.mp4",
+ "palette": {
+  "cian": "#5DCBE1",
+  "rojo": "#EA3355",
+  "amarillo": "#F5C042",
+  "verde": "#54B835",
+  "oscuro": "#3B3B3E",
+  "gris": "#F0F0F0",
+  "tinta": "#201D2F",
+  "menta": "#6CEACB",
+  "meta": "#7A7985"
+ },
+ "fonts": {
+  "titulo": "MuseoSansRounded-900",
+  "numero": "MuseoSansRounded-1000",
+  "texto": "MuseoSansRounded-700",
+  "liviana": "MuseoSansRounded-300",
+  "marca": "Museo-700"
+ },
+ "stage": {
+  "tarjeta": {
+   "x": 90,
+   "y": 300,
+   "width": 840,
+   "height": 760
+  },
+  "subtitulos": {
+   "x": 90,
+   "y": 1090,
+   "width": 840,
+   "height": 200
+  },
+  "seguro": {
+   "top": 280,
+   "bottom": 1650,
+   "left": 90,
+   "right": 940
+  },
+  "pastilla": {
+   "fontSize": 56,
+   "lineHeight": 1.32,
+   "padX": 40,
+   "padY": 16,
+   "radius": 22,
+   "blur": 10,
+   "scrimAlpha": 0.55,
+   "maxLines": 2
+  }
+ },
+ "scenes": [
+  {
+   "key": "cinco-minutos",
+   "kind": "numero",
+   "from": 0,
+   "to": 97,
+   "kicker": "PREPARARSE A TIEMPO",
+   "title": "Tenés que\nsalir de casa.",
+   "value": "5",
+   "unit": "minutos",
+   "at": 65
+  },
+  {
+   "key": "que-llevarias",
+   "kind": "medio",
+   "from": 97,
+   "to": 189,
+   "kicker": "NO SABÉS CUÁNDO VOLVÉS",
+   "title": "¿Qué llevarías?",
+   "media": "assets/mochila.mov",
+   "rank": "refuerzo",
+   "mediaKind": "gif",
+   "mediaSize": [
+    435,
+    480
+   ],
+   "portrait": true
+  },
+  {
+   "key": "cualquier-hogar",
+   "kind": "medio",
+   "from": 189,
+   "to": 331,
+   "kicker": "EMERGENCIA POR INUNDACIÓN",
+   "title": "Una inundación.\nCualquier hogar.",
+   "media": "media/recursos/lluvia-original.jpg",
+   "rank": "didactico",
+   "mediaKind": "photo",
+   "mediaSize": [
+    1920,
+    1080
+   ],
+   "portrait": false
+  },
+  {
+   "key": "lluvias",
+   "kind": "medio",
+   "from": 331,
+   "to": 522,
+   "kicker": "CUANDO LA LLUVIA NO PARA",
+   "title": "Lluvias\nmuy intensas.",
+   "media": "media/recursos/rain.mp4",
+   "rank": "refuerzo",
+   "credit": "Imágenes ilustrativas",
+   "note": {
+    "text": "El Niño",
+    "at": 484
+   },
+   "mediaKind": "video",
+   "mediaSize": [
+    720,
+    1280
+   ],
+   "portrait": true
+  },
+  {
+   "key": "incertidumbre",
+   "kind": "opciones",
+   "from": 522,
+   "to": 666,
+   "kicker": "NO TODO SE PUEDE ANTICIPAR",
+   "title": "No podemos\nsaberlo todo.",
+   "options": [
+    {
+     "text": "¿Pasará?",
+     "at": 613
+    },
+    {
+     "text": "¿Cuándo?",
+     "at": 641
+    }
+   ]
+  },
+  {
+   "key": "decision",
+   "kind": "opciones",
+   "from": 666,
+   "to": 808,
+   "kicker": "SÍ PODEMOS DECIDIR",
+   "title": "Cómo nos\nencuentre.",
+   "options": [
+    {
+     "text": "Preparados",
+     "at": 751,
+     "marked": true
+    },
+    {
+     "text": "Improvisando",
+     "at": 776
+    }
+   ]
+  },
+  {
+   "key": "capitulo-completo",
+   "kind": "cierre",
+   "from": 808,
+   "to": 1129,
+   "kicker": "LA PREPARACIÓN EMPIEZA ANTES",
+   "title": "Elegí estar\npreparado.",
+   "supporting": "Mirá el video completo\nen la plataforma.",
+   "button": "Educaplay",
+   "at": 885
+  }
+ ],
+ "captions": [
+  {
+   "from": 5,
+   "to": 25,
+   "text": "Tenés que salir",
+   "words": [
+    [
+     "Tenés",
+     5,
+     12
+    ],
+    [
+     "que",
+     12,
+     14
+    ],
+    [
+     "salir",
+     17,
+     23
+    ]
+   ]
+  },
+  {
+   "from": 25,
+   "to": 43,
+   "text": "de tu casa",
+   "words": [
+    [
+     "de",
+     25,
+     27
+    ],
+    [
+     "tu",
+     28,
+     30
+    ],
+    [
+     "casa",
+     37,
+     39
+    ]
+   ]
+  },
+  {
+   "from": 46,
+   "to": 65,
+   "text": "en menos de",
+   "words": [
+    [
+     "en",
+     46,
+     50
+    ],
+    [
+     "menos",
+     50,
+     60
+    ],
+    [
+     "de",
+     61,
+     65
+    ]
+   ]
+  },
+  {
+   "from": 65,
+   "to": 92,
+   "text": "cinco minutos",
+   "words": [
+    [
+     "cinco",
+     65,
+     75
+    ],
+    [
+     "minutos",
+     75,
+     88
+    ]
+   ]
+  },
+  {
+   "from": 97,
+   "to": 119,
+   "text": "y no sabés",
+   "words": [
+    [
+     "y",
+     97,
+     103
+    ],
+    [
+     "no",
+     103,
+     108
+    ],
+    [
+     "sabés",
+     108,
+     119
+    ]
+   ]
+  },
+  {
+   "from": 119,
+   "to": 151,
+   "text": "cuándo volvés.",
+   "words": [
+    [
+     "cuándo",
+     119,
+     135
+    ],
+    [
+     "volvés.",
+     135,
+     147
+    ]
+   ]
+  },
+  {
+   "from": 156,
+   "to": 179,
+   "text": "¿Qué llevarías?",
+   "words": [
+    [
+     "¿Qué",
+     156,
+     158
+    ],
+    [
+     "llevarías?",
+     161,
+     175
+    ]
+   ]
+  },
+  {
+   "from": 189,
+   "to": 221,
+   "text": "Una emergencia",
+   "words": [
+    [
+     "Una",
+     189,
+     197
+    ],
+    [
+     "emergencia",
+     197,
+     221
+    ]
+   ]
+  },
+  {
+   "from": 221,
+   "to": 241,
+   "text": "por inundación",
+   "words": [
+    [
+     "por",
+     221,
+     225
+    ],
+    [
+     "inundación",
+     225,
+     241
+    ]
+   ]
+  },
+  {
+   "from": 241,
+   "to": 278,
+   "text": "puede ocurrir",
+   "words": [
+    [
+     "puede",
+     241,
+     259
+    ],
+    [
+     "ocurrir",
+     259,
+     276
+    ]
+   ]
+  },
+  {
+   "from": 278,
+   "to": 319,
+   "text": "en cualquier hogar,",
+   "words": [
+    [
+     "en",
+     278,
+     284
+    ],
+    [
+     "cualquier",
+     284,
+     296
+    ],
+    [
+     "hogar,",
+     296,
+     315
+    ]
+   ]
+  },
+  {
+   "from": 331,
+   "to": 366,
+   "text": "especialmente durante",
+   "words": [
+    [
+     "especialmente",
+     331,
+     343
+    ],
+    [
+     "durante",
+     348,
+     366
+    ]
+   ]
+  },
+  {
+   "from": 366,
+   "to": 390,
+   "text": "períodos de",
+   "words": [
+    [
+     "períodos",
+     366,
+     385
+    ],
+    [
+     "de",
+     385,
+     390
+    ]
+   ]
+  },
+  {
+   "from": 390,
+   "to": 434,
+   "text": "lluvias muy intensas,",
+   "words": [
+    [
+     "lluvias",
+     390,
+     400
+    ],
+    [
+     "muy",
+     403,
+     409
+    ],
+    [
+     "intensas,",
+     410,
+     430
+    ]
+   ]
+  },
+  {
+   "from": 438,
+   "to": 453,
+   "text": "como ocurre",
+   "words": [
+    [
+     "como",
+     438,
+     442
+    ],
+    [
+     "ocurre",
+     443,
+     453
+    ]
+   ]
+  },
+  {
+   "from": 453,
+   "to": 475,
+   "text": "con la llegada",
+   "words": [
+    [
+     "con",
+     453,
+     458
+    ],
+    [
+     "la",
+     458,
+     462
+    ],
+    [
+     "llegada",
+     462,
+     475
+    ]
+   ]
+  },
+  {
+   "from": 475,
+   "to": 497,
+   "text": "del fenómeno",
+   "words": [
+    [
+     "del",
+     475,
+     484
+    ],
+    [
+     "fenómeno",
+     484,
+     497
+    ]
+   ]
+  },
+  {
+   "from": 497,
+   "to": 515,
+   "text": "del Niño.",
+   "words": [
+    [
+     "del",
+     497,
+     503
+    ],
+    [
+     "Niño.",
+     503,
+     511
+    ]
+   ]
+  },
+  {
+   "from": 522,
+   "to": 535,
+   "text": "Y si bien",
+   "words": [
+    [
+     "Y",
+     522,
+     524
+    ],
+    [
+     "si",
+     524,
+     529
+    ],
+    [
+     "bien",
+     529,
+     535
+    ]
+   ]
+  },
+  {
+   "from": 535,
+   "to": 572,
+   "text": "no podemos saber",
+   "words": [
+    [
+     "no",
+     535,
+     546
+    ],
+    [
+     "podemos",
+     546,
+     557
+    ],
+    [
+     "saber",
+     558,
+     572
+    ]
+   ]
+  },
+  {
+   "from": 572,
+   "to": 603,
+   "text": "exactamente",
+   "words": [
+    [
+     "exactamente",
+     572,
+     599
+    ]
+   ]
+  },
+  {
+   "from": 607,
+   "to": 630,
+   "text": "si pasará",
+   "words": [
+    [
+     "si",
+     607,
+     613
+    ],
+    [
+     "pasará",
+     613,
+     626
+    ]
+   ]
+  },
+  {
+   "from": 635,
+   "to": 656,
+   "text": "o cuándo,",
+   "words": [
+    [
+     "o",
+     635,
+     641
+    ],
+    [
+     "cuándo,",
+     641,
+     652
+    ]
+   ]
+  },
+  {
+   "from": 664,
+   "to": 697,
+   "text": "sí podemos decidir",
+   "words": [
+    [
+     "sí",
+     664,
+     670
+    ],
+    [
+     "podemos",
+     670,
+     681
+    ],
+    [
+     "decidir",
+     681,
+     697
+    ]
+   ]
+  },
+  {
+   "from": 697,
+   "to": 741,
+   "text": "cómo nos encuentre:",
+   "words": [
+    [
+     "cómo",
+     697,
+     713
+    ],
+    [
+     "nos",
+     713,
+     720
+    ],
+    [
+     "encuentre:",
+     720,
+     737
+    ]
+   ]
+  },
+  {
+   "from": 751,
+   "to": 800,
+   "text": "preparados o improvisando.",
+   "words": [
+    [
+     "preparados",
+     751,
+     767
+    ],
+    [
+     "o",
+     770,
+     776
+    ],
+    [
+     "improvisando.",
+     776,
+     796
+    ]
+   ]
+  },
+  {
+   "from": 808,
+   "to": 829,
+   "text": "Si tu elección",
+   "words": [
+    [
+     "Si",
+     808,
+     814
+    ],
+    [
+     "tu",
+     814,
+     817
+    ],
+    [
+     "elección",
+     817,
+     829
+    ]
+   ]
+  },
+  {
+   "from": 829,
+   "to": 877,
+   "text": "es estar preparado,",
+   "words": [
+    [
+     "es",
+     829,
+     841
+    ],
+    [
+     "estar",
+     841,
+     855
+    ],
+    [
+     "preparado,",
+     855,
+     873
+    ]
+   ]
+  },
+  {
+   "from": 885,
+   "to": 926,
+   "text": "mirá el video completo",
+   "words": [
+    [
+     "mirá",
+     885,
+     889
+    ],
+    [
+     "el",
+     891,
+     897
+    ],
+    [
+     "video",
+     897,
+     904
+    ],
+    [
+     "completo",
+     904,
+     922
+    ]
+   ]
+  },
+  {
+   "from": 926,
+   "to": 953,
+   "text": "en la plataforma",
+   "words": [
+    [
+     "en",
+     926,
+     932
+    ],
+    [
+     "la",
+     932,
+     935
+    ],
+    [
+     "plataforma",
+     935,
+     949
+    ]
+   ]
+  },
+  {
+   "from": 953,
+   "to": 977,
+   "text": "de Educaplay.",
+   "words": [
+    [
+     "de",
+     953,
+     959
+    ],
+    [
+     "Educaplay.",
+     959,
+     973
+    ]
+   ]
+  }
+ ]
+}

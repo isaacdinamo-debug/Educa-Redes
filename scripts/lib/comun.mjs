@@ -32,6 +32,18 @@ export const ESCENARIO = {
   /** Piso de lectura: una escena dura al menos 2 s y una opción 1 s en pantalla. */
   minEscena: 50,
   minOpcion: 25,
+  /**
+   * Variante editorial (auditoría del 7/10/2026): una sola página oscura, fija
+   * y del mismo tamaño en todas las escenas, y el subtítulo anclado debajo.
+   * Usa el alto seguro completo.
+   */
+  editorial: {
+    pagina: {x: 90, y: 300, width: 840, height: 1010},
+    margen: 44,
+    subtitulos: {x: 90, y: 1390, width: 840, height: 170},
+    /** Una página de subtítulo se queda al menos 1 s. */
+    pisoSubtitulo: 25,
+  },
 };
 
 /**
@@ -42,12 +54,70 @@ export const ESCENARIO = {
 export const PALETA = {
   cian: '#5DCBE1', rojo: '#EA3355', amarillo: '#F5C042', verde: '#54B835',
   oscuro: '#3B3B3E', gris: '#F0F0F0', tinta: '#201D2F', menta: '#6CEACB', meta: '#7A7985',
+  // Grises de texto sobre la página oscura (variante editorial), del más claro al más tenue.
+  claro: '#D9D8DF', suave: '#B4B3BD', tenue: '#A6A5B0',
 };
 export const FUENTES = {
   titulo: 'MuseoSansRounded-900', numero: 'MuseoSansRounded-1000',
   texto: 'MuseoSansRounded-700', liviana: 'MuseoSansRounded-300',
   /** La marca, como en el logo: Museo 700, «Educaplay». */
   marca: 'Museo-700',
+  /** Variante editorial: titulares en la slab del logo; etiquetas y pies en Rounded 500. */
+  slab: 'Museo-700', media: 'MuseoSansRounded-500',
+};
+
+/**
+ * Pagina los subtítulos a partir de las palabras [texto, desde, hasta).
+ * Corta en puntuación, en pausas y a las `max` palabras, sin dejar una
+ * palabra de enlace («de», «la», «y»…) colgada al final. Con `piso` (frames),
+ * ninguna página dura menos: primero se queda hasta que empieza la siguiente
+ * y, si aun así no llega, se funde con una vecina (sin pasar de `tope`).
+ * `base` permite partir de cortes ya hechos a mano (rangos [desde, hasta)).
+ */
+const ENLACE = new Set(['a', 'al', 'con', 'de', 'del', 'el', 'en', 'es', 'la', 'las', 'lo', 'los', 'mi', 'no', 'o', 'para', 'por', 'que', 'se', 'si', 'su', 'tu', 'un', 'una', 'y']);
+export const paginar = (words, {max = 4, pausa = 8, cola = 6, piso = 0, tope = ESCENARIO.maxPalabras, base = null} = {}) => {
+  let ranges = base ? base.map((r) => [...r]) : [];
+  let start = 0;
+  for (let i = 0; !base && i < words.length; i++) {
+    const next = words[i + 1];
+    const endsPhrase = /[.,;:!?…]$/.test(words[i][0]);
+    const gap = next && next[1] - words[i][2] >= pausa;
+    if (!next || endsPhrase || gap) {
+      ranges.push([start, i + 1]);
+      start = i + 1;
+    } else if (i - start + 1 >= max) {
+      // Se retrocede el corte mientras termine en una palabra de enlace.
+      let cut = i + 1;
+      while (cut - 1 > start && ENLACE.has(words[cut - 1][0].toLowerCase())) cut--;
+      ranges.push([start, cut]);
+      start = cut;
+    }
+  }
+  const timed = (rs) => rs.map(([a, b], k) => {
+    const from = words[a][1];
+    const end = words[b - 1][2];
+    const limit = rs[k + 1] ? words[rs[k + 1][0]][1] : Infinity;
+    // Si la siguiente llega enseguida, se queda hasta ahí: sin parpadeo entre páginas.
+    const to = limit - end < 12 ? limit : Math.min(Math.max(end + cola, from + piso), limit);
+    return {from, to: Number.isFinite(to) ? to : end + cola, words: [a, b]};
+  });
+  const endsSentence = ([, b]) => /[.!?…]$/.test(words[b - 1][0]);
+  const stuck = new Set(); // páginas cortas que no se pueden fundir con nadie
+  for (let guard = 0; piso && guard < words.length; guard++) {
+    const pages = timed(ranges);
+    const k = pages.findIndex((p) => p.to - p.from < piso && !stuck.has(p.words[0]));
+    if (k < 0) break;
+    const size = (r) => r[1] - r[0];
+    const fitsNext = ranges[k + 1] && size(ranges[k]) + size(ranges[k + 1]) <= tope;
+    // No se funde hacia atrás cruzando el final de una oración.
+    const fitsPrev = ranges[k - 1] && size(ranges[k]) + size(ranges[k - 1]) <= tope && !endsSentence(ranges[k - 1]);
+    // Una oración que termina no se pega a la que empieza: mejor a la anterior.
+    const withNext = fitsNext && !endsSentence(ranges[k]);
+    if (withNext) ranges.splice(k, 2, [ranges[k][0], ranges[k + 1][1]]);
+    else if (fitsPrev) ranges.splice(k - 1, 2, [ranges[k - 1][0], ranges[k][1]]);
+    else stuck.add(ranges[k][0]);
+  }
+  return timed(ranges);
 };
 
 /** Cómo se escribe la marca, siempre: E mayúscula y el resto en minúscula. */

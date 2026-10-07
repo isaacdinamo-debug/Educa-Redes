@@ -10,7 +10,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import {ESCENARIO as E, MARCA, PALETA, hasAudio, loadReel, parseArgs, probe, REPO} from './lib/comun.mjs';
+import {ESCENARIO as E, MARCA, PALETA, paginar, hasAudio, loadReel, parseArgs, probe, REPO} from './lib/comun.mjs';
 
 const errors = [];
 const fail = (m) => errors.push(m);
@@ -134,6 +134,15 @@ const main = async () => {
   if (!inSafe(E.subtitulos)) fail('ESCENARIO.subtitulos sale de las zonas seguras');
   if (E.tarjeta.y + E.tarjeta.height > E.subtitulos.y) fail('la tarjeta se cruza con los subtítulos');
   ok('tarjeta y subtítulos dentro de las zonas seguras');
+  const ED = E.editorial;
+  if (!inSafe(ED.pagina)) fail('ESCENARIO.editorial.pagina sale de las zonas seguras');
+  if (!inSafe(ED.subtitulos)) fail('ESCENARIO.editorial.subtitulos sale de las zonas seguras');
+  if (ED.pagina.y + ED.pagina.height > ED.subtitulos.y) fail('editorial: la página se cruza con los subtítulos');
+  const edPages = paginar(words, {piso: ED.pisoSubtitulo, base: captions.map((c) => c.words)});
+  const short = edPages.filter((p) => p.to - p.from < ED.pisoSubtitulo);
+  if (edPages.at(-1)?.words[1] !== words.length) fail('editorial: la repaginación no cubre todas las palabras');
+  for (const p of short) fail(`editorial: «${words.slice(...p.words).map((w) => w[0]).join(' ')}» dura ${p.to - p.from} frames (piso ${ED.pisoSubtitulo})`);
+  ok(`editorial: página en zona segura y ${edPages.length} subtítulos de 1 s o más`);
 
   // ── contraste (WCAG AA 4,5:1 para texto; los pares que usa el .jsx)
   const plate = '#22BCA2'; // plató verde de Ambiente, el más claro de los que se usan
@@ -142,6 +151,9 @@ const main = async () => {
     ['kicker menta / tarjeta oscura', PALETA.menta, PALETA.oscuro],
     ['texto tinta / baldosa gris', PALETA.tinta, PALETA.gris],
     ['palabra activa tinta / menta', PALETA.tinta, PALETA.menta],
+    ['editorial: texto suave / página oscura', PALETA.suave, PALETA.oscuro],
+    ['editorial: texto tenue / página oscura', PALETA.tenue, PALETA.oscuro],
+    ['editorial: palabra activa menta / pastilla sobre el plató', PALETA.menta, scrim(plate, E.pastilla.scrimAlpha)],
     ['subtítulo blanco / pastilla sobre el plató', '#FFFFFF', scrim(plate, E.pastilla.scrimAlpha)],
   ];
   for (const [what, fg, bg] of pairs) {

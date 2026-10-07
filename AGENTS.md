@@ -20,6 +20,9 @@ y las trampas están en la skill `.agents/skills/educaplay-redes/SKILL.md`.
 | `ae/` | `build-reel.jsx` (constructor), `run.mjs` (maneja AE desde la terminal), `render.mjs` (aerender + ffmpeg). |
 | `plantillas/data.molde.ts` | Molde del `data.ts` de un reel nuevo. |
 
+Cada reel se puede armar en dos variantes: la clásica y la **editorial** (`--editorial` en
+`export:ae`, `ae` y `render`; ver `docs/ESTETICA.md`). Tienen proyecto, revisión y MP4 separados.
+
 ## Reglas duras
 
 - **La marca se escribe «Educaplay»**: E mayúscula y el resto en minúscula, en subtítulos, botones,

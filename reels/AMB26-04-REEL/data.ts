@@ -26,6 +26,7 @@ import type {Reel} from '../../scripts/lib/tipos.ts';
 export const REEL: Reel = {
   code: 'AMB26-04-REEL',
   title: 'Plan B: protocolo para una inundación',
+  short: 'Plan B',
   series: 'Educación Ambiental Integral',
   fps: 25,
   master: 'media/master.mp4',
@@ -34,23 +35,26 @@ export const REEL: Reel = {
       key: 'cinco-minutos', kind: 'numero', from: 0, to: 97,
       kicker: 'PREPARARSE A TIEMPO', title: 'Tenés que\nsalir de casa.',
       value: '5', unit: 'minutos', at: 65, // «cinco»
+      detalle: 'para salir, sin saber\ncuándo volvés.', pie: 'Protocolo ante una inundación',
     },
     {
       key: 'que-llevarias', kind: 'medio', from: 97, to: 189,
       kicker: 'NO SABÉS CUÁNDO VOLVÉS', title: '¿Qué llevarías?',
       media: 'media/recursos/mochila.gif', rank: 'refuerzo',
+      pie: 'La mochila de emergencia', fuente: 'Animación del capítulo',
     },
     {
       key: 'cualquier-hogar', kind: 'medio', from: 189, to: 331,
       kicker: 'EMERGENCIA POR INUNDACIÓN', title: 'Una inundación.\nCualquier hogar.',
       media: 'media/recursos/lluvia-original.jpg', rank: 'didactico',
+      pie: 'Tormenta eléctrica sobre una ciudad', fuente: 'Imagen del capítulo',
     },
     {
       key: 'lluvias', kind: 'medio', from: 331, to: 522,
       kicker: 'CUANDO LA LLUVIA NO PARA', title: 'Lluvias\nmuy intensas.',
       media: 'media/recursos/rain.mp4', rank: 'refuerzo',
       credit: 'Imágenes ilustrativas',
-      note: {text: 'El Niño', at: 484}, // «fenómeno»: en «Niño» (f503) quedaba 0,8 s
+      note: {text: 'El Niño', at: 484, label: 'EL FENÓMENO'}, // «fenómeno»: en «Niño» (f503) quedaba 0,8 s
     },
     {
       key: 'incertidumbre', kind: 'opciones', from: 522, to: 666, // +2: «¿Cuándo?» (f641) necesita 1 s

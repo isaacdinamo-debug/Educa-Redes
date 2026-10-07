@@ -4,6 +4,8 @@
  *   npm run ae -- <CODE>                          (desde la raíz del repo)
  *   npm run ae -- <CODE> --frames 60,420          (stills en esos frames)
  *   npm run ae -- <CODE> --forzar                 (cierra aunque haya otro proyecto)
+ *   npm run ae -- <CODE> --editorial              (variante editorial: manifest.editorial.json,
+ *                                                  <CODE>-editorial.aep y revision-editorial/)
  *
  *   1. abre After Effects si no está corriendo y espera a que acepte scripts;
  *   2. cierra el proyecto abierto SIN guardar sólo si lo generó este flujo
@@ -127,12 +129,13 @@ const defaultFrames = (M) => {
   const words = M.captions.flatMap((c) => c.words);
   const out = M.scenes.map((s) => {
     const beats = [s.at, s.note?.at, ...(s.options ?? []).map((o) => o.at)].filter((x) => x !== undefined);
-    const target = Math.min(Math.max(s.from + 40, ...beats.map((b) => b + 20)), s.to - 1);
+    // Nunca en los últimos 12 cuadros: ahí la escena ya se está yendo.
+    const target = Math.min(Math.max(s.from + 40, ...beats.map((b) => b + 20)), s.to - 12);
     // La primera palabra desde ahí, con la tarjeta todavía entera en pantalla.
     let best = target, dist = Infinity;
     for (const [, a, b] of words) {
       const mid = Math.floor((a + b) / 2);
-      if (mid < target || mid >= s.to - 10) continue;
+      if (mid < target || mid >= s.to - 12) continue;
       if (Math.abs(mid - target) < dist) { dist = Math.abs(mid - target); best = mid; }
     }
     return dist <= 25 ? best : target;
@@ -164,9 +167,9 @@ const contactSheet = (pngs, out) => {
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', filter, '-frames:v', '1', '-q:v', '4', out]);
 };
 
-const build = async (app, code, M, frames, revDir, tmpDir, force) => {
+const build = async (app, code, M, frames, revDir, tmpDir, force, manifestPath) => {
   const problems = [];
-  const aep = path.join(REPO, 'reels', code, `${code}.aep`);
+  const aep = path.join(REPO, 'reels', code, `${code}${M.variant === 'editorial' ? '-editorial' : ''}.aep`);
   const logFile = path.join(tmpDir, 'log.txt');
   const stillDir = path.join(revDir, 'stills');
   fs.rmSync(aep, {force: true});
@@ -175,9 +178,9 @@ const build = async (app, code, M, frames, revDir, tmpDir, force) => {
 
   closeOwnProject(app, code, tmpDir, force);
 
-  console.log(`\n▶ ${code}`);
+  console.log(`\n▶ ${code}${M.variant === 'editorial' ? ' · editorial' : ''}`);
   runJsx(app, `
-    $.global.EDUCAPLAY_MANIFEST = ${js(path.join(REPO, 'reels', code, 'manifest.json'))};
+    $.global.EDUCAPLAY_MANIFEST = ${js(manifestPath)};
     $.evalFile(File(${js(path.join(AE_DIR, 'build-reel.jsx'))}));
     var o=new File(${js(logFile)});o.encoding='UTF-8';o.lineFeed='Unix';o.open('w');
     o.write((typeof LOG!=='undefined'?LOG:['✗ el constructor no dejó LOG']).join('\\n'));o.close();`, tmpDir);
@@ -228,11 +231,12 @@ const main = async () => {
   const {code, flags} = args;
   if (!code) throw new Error('Uso: npm run ae -- <CODE> [--frames 60,420] [--forzar]');
 
-  const manifestPath = path.join(REPO, 'reels', code, 'manifest.json');
-  if (!fs.existsSync(manifestPath)) throw new Error(`Falta ${path.relative(REPO, manifestPath)}: corré npm run export:ae -- ${code}`);
+  const ed = flags.editorial ? '.editorial' : '';
+  const manifestPath = path.join(REPO, 'reels', code, `manifest${ed}.json`);
+  if (!fs.existsSync(manifestPath)) throw new Error(`Falta ${path.relative(REPO, manifestPath)}: corré npm run export:ae -- ${code}${flags.editorial ? ' --editorial' : ''}`);
   const M = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const frames = flags.frames ? String(flags.frames).split(',').map(Number) : defaultFrames(M);
-  const revDir = path.join(REPO, 'reels', code, 'revision');
+  const revDir = path.join(REPO, 'reels', code, flags.editorial ? 'revision-editorial' : 'revision');
   fs.mkdirSync(revDir, {recursive: true});
 
   const app = aeApp();
@@ -240,7 +244,7 @@ const main = async () => {
   let problems;
   try {
     await ensureAE(app, tmpDir);
-    problems = await build(app, code, M, frames, revDir, tmpDir, !!flags.forzar);
+    problems = await build(app, code, M, frames, revDir, tmpDir, !!flags.forzar, manifestPath);
   } finally {
     fs.rmSync(tmpDir, {recursive: true, force: true});
   }
@@ -253,7 +257,7 @@ const main = async () => {
     console.log('\n✗ No pasa. Mirá revision/log.txt.');
     process.exit(1);
   }
-  console.log(`\n✓ ${code} armado y verificado. Revisá reels/${code}/revision/contacto.jpg.`);
+  console.log(`\n✓ ${code} armado y verificado. Revisá ${path.relative(REPO, revDir)}/contacto.jpg.`);
 };
 
 main().catch((e) => {

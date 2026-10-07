@@ -1,7 +1,9 @@
 {
  "code": "AMB26-04-REEL",
  "generatedBy": "scripts/export-ae.mjs — no editar a mano: se regenera",
+ "variant": "clasico",
  "title": "Plan B: protocolo para una inundación",
+ "short": "Plan B",
  "series": "Educación Ambiental Integral",
  "fps": 25,
  "width": 1080,
@@ -17,14 +19,19 @@
   "gris": "#F0F0F0",
   "tinta": "#201D2F",
   "menta": "#6CEACB",
-  "meta": "#7A7985"
+  "meta": "#7A7985",
+  "claro": "#D9D8DF",
+  "suave": "#B4B3BD",
+  "tenue": "#A6A5B0"
  },
  "fonts": {
   "titulo": "MuseoSansRounded-900",
   "numero": "MuseoSansRounded-1000",
   "texto": "MuseoSansRounded-700",
   "liviana": "MuseoSansRounded-300",
-  "marca": "Museo-700"
+  "marca": "Museo-700",
+  "slab": "Museo-700",
+  "media": "MuseoSansRounded-500"
  },
  "stage": {
   "tarjeta": {
@@ -66,7 +73,9 @@
    "title": "Tenés que\nsalir de casa.",
    "value": "5",
    "unit": "minutos",
-   "at": 65
+   "at": 65,
+   "detalle": "para salir, sin saber\ncuándo volvés.",
+   "pie": "Protocolo ante una inundación"
   },
   {
    "key": "que-llevarias",
@@ -77,6 +86,8 @@
    "title": "¿Qué llevarías?",
    "media": "assets/mochila.mov",
    "rank": "refuerzo",
+   "pie": "La mochila de emergencia",
+   "fuente": "Animación del capítulo",
    "mediaKind": "gif",
    "mediaSize": [
     435,
@@ -93,6 +104,8 @@
    "title": "Una inundación.\nCualquier hogar.",
    "media": "media/recursos/lluvia-original.jpg",
    "rank": "didactico",
+   "pie": "Tormenta eléctrica sobre una ciudad",
+   "fuente": "Imagen del capítulo",
    "mediaKind": "photo",
    "mediaSize": [
     1920,
@@ -112,7 +125,8 @@
    "credit": "Imágenes ilustrativas",
    "note": {
     "text": "El Niño",
-    "at": 484
+    "at": 484,
+    "label": "EL FENÓMENO"
    },
    "mediaKind": "video",
    "mediaSize": [

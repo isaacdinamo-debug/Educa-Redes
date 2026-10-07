@@ -102,7 +102,9 @@ function buildReel() {
   var FONTS = M.fonts;
   var STAGE = M.stage;
   var RAINBOW = [WEB.cian, WEB.rojo, WEB.amarillo, WEB.verde];
-  log('▶ ' + MAIN + ' · ' + M.scenes.length + ' escenas · ' + M.captions.length + ' subtítulos');
+  // Variante editorial (docs/ESTETICA.md): una página fija que se transforma.
+  var EDITORIAL = M.variant === 'editorial';
+  log('▶ ' + MAIN + (EDITORIAL ? ' (editorial)' : '') + ' · ' + M.scenes.length + ' escenas · ' + M.captions.length + ' subtítulos');
 
   app.beginUndoGroup('Educaplay Redes · ' + MAIN);
   if (app.project && app.project.numItems > 0) {
@@ -174,9 +176,12 @@ function buildReel() {
   colorCtl('Banda verde', WEB.verde);
   sliderCtl('Entrada (frames)', 16);
   sliderCtl('Salida (frames)', 8);
-  sliderCtl('Deslizamiento (px)', 90);
-  sliderCtl('Rebote (%)', 8);
-  sliderCtl('Sombra (%)', 22);
+  if (!EDITORIAL) {
+    // La editorial no desliza, no rebota y no lleva sombra.
+    sliderCtl('Deslizamiento (px)', 90);
+    sliderCtl('Rebote (%)', 8);
+    sliderCtl('Sombra (%)', 22);
+  }
   checkCtl('Subtítulos', 1);
   checkCtl('Karaoke', 1);
   var BAND_CTL = ['Banda cian', 'Banda roja', 'Banda amarilla', 'Banda verde'];
@@ -335,8 +340,10 @@ function buildReel() {
       props.addProperty('ADBE Text Position 3D').setValue([0, 26, 0]);
       var sel = an.property('ADBE Text Selectors').addProperty('ADBE Text Selector');
       var adv = sel.property('ADBE Text Range Advanced');
-      soft('basado en palabras', function () {
-        if (basedOnWords) adv.property('ADBE Text Range Type2').setValue(3);
+      // true = por palabras (3); un número elige la base: 4 = por líneas.
+      var base = basedOnWords === true ? 3 : basedOnWords;
+      soft('base del selector', function () {
+        if (base) adv.property('ADBE Text Range Type2').setValue(base);
       });
       keys(sel.property('ADBE Text Percent Start'), [t0, t0 + dur], [0, 100]);
     });
@@ -352,14 +359,17 @@ function buildReel() {
     }
   }
 
-  /** Pop con un leve sobrepaso alrededor de (cx, cy), sin mover nada de lugar. */
+  /**
+   * Pop alrededor de (cx, cy), sin mover nada de lugar. Sin sobrepaso: una
+   * pieza pegada al borde de su precomp se recortaba al pasarse del 100 %.
+   */
   function pop(layers, cx, cy, t0) {
     for (var i = 0; i < layers.length; i++) {
       var t = layers[i].property('ADBE Transform Group');
       var a = t.property('ADBE Anchor Point').value, p = t.property('ADBE Position').value;
       t.property('ADBE Anchor Point').setValue([a[0] + (cx - p[0]), a[1] + (cy - p[1])]);
       t.property('ADBE Position').setValue([cx, cy]);
-      keys(t.property('ADBE Scale'), [t0, t0 + sec(9), t0 + sec(14)], [[0, 0], [106, 106], [100, 100]]);
+      keys(t.property('ADBE Scale'), [t0, t0 + sec(12)], [[0, 0], [100, 100]]);
     }
   }
 
@@ -477,7 +487,7 @@ function buildReel() {
   }
 
   /** Medio (foto/video/gif) recortado en un rect redondeado con track matte. */
-  function mediaIn(comp, s, x, y, w, h, fit, kenBurns) {
+  function mediaIn(comp, s, x, y, w, h, fit, kenBurns, radius) {
     var item = footage(s.media);
     var l = comp.layers.add(item);
     l.name = 'MEDIO · ' + s.media.replace(/^(media\/recursos|assets)\//, '');
@@ -496,7 +506,7 @@ function buildReel() {
     else t.property('ADBE Scale').setValue([sc, sc]);
 
     var matte = newShapeLayer(comp, 'MATTE · ' + l.name);
-    addRect(matte, x, y, w, h, RADIUS - 6, [1, 1, 1]);
+    addRect(matte, x, y, w, h, radius === undefined ? RADIUS - 6 : radius, [1, 1, 1]);
     matte.moveBefore(l);
     l.setTrackMatte(matte, TrackMatteType.ALPHA);
     return {layer: l, matte: matte, w: item.width * sc / 100, h: item.height * sc / 100};
@@ -705,10 +715,265 @@ function buildReel() {
     return top + th;
   };
 
+  // ─────────────────────────────────────────────────── variante editorial
+  // Una sola página oscura, fija y del mismo tamaño en todas las escenas. La
+  // página no sale ni entra entre escenas: cambia lo que tiene escrito. Sin
+  // barridos, sin pops, sin sombras; menta como único acento y las 4 bandas
+  // sólo como firma, al abrir y al cerrar.
+  function buildEditorial() {
+    var PG = STAGE.pagina, PW = PG.width, PH = PG.height, MG = STAGE.margen;
+    var INW = PW - MG * 2;
+    var SUAVE = hex(WEB.suave), TENUE = hex(WEB.tenue), CLARO = hex(WEB.claro), MENTA = hex(WEB.menta), BLANCO = [1, 1, 1];
+    var HEAD_H = 86; // cabecera de la página: nombre del capítulo, folio y filete
+    var n = M.scenes.length;
+
+    function place(t, x, y) { t.layer.property('ADBE Transform Group').property('ADBE Position').setValue([x, y]); }
+    function hairline(comp, x0, x1, y, name) {
+      var l = newShapeLayer(comp, name || 'FILETE');
+      var st = addStroke(addPath(l, [[x0, y], [x1, y]], false, 'filete'), BLANCO, 1);
+      st.property('ADBE Vector Stroke Opacity').setValue(22);
+      soft('extremo recto', function () { st.property('ADBE Vector Stroke Line Cap').setValue(1); });
+      return l;
+    }
+    /** Texto que achica su cuerpo de a 4 px hasta entrar en `fitW` (piso `minSize`). */
+    function fitText(comp, str, x, y, o, minSize) {
+      var size = o.size;
+      var t = text(comp, str, x, y, {name: o.name, font: o.font, size: size, leading: size, color: o.color});
+      while (t.w > o.fitW && size > minSize) {
+        size -= 4;
+        styleText(t.layer, {font: o.font, size: size, leading: size, color: o.color});
+        var r = rectOf(t.layer);
+        var tr = t.layer.property('ADBE Transform Group');
+        tr.property('ADBE Anchor Point').setValue([r.left, r.top]);
+        tr.property('ADBE Position').setValue([x, y]);
+        t.w = r.width; t.h = r.height;
+      }
+      if (t.w > o.fitW + 1) log('⚠ texto que no entra ni a ' + size + ' px: ' + str.replace(/\n/g, ' '));
+      return t;
+    }
+    /** Pie de la página: qué se ve a la izquierda, la fuente a la derecha. Devuelve el y donde empieza. */
+    function pieRow(comp, left, right) {
+      var top = PH - 64;
+      if (left) {
+        var a = text(comp, left, MG, 0, {name: 'PIE', font: FONTS.media, size: 22, color: SUAVE});
+        place(a, MG, top + 16);
+        fadeIn(a.layer, sec(12), sec(10));
+      }
+      if (right) {
+        var b = text(comp, right, 0, 0, {name: 'FUENTE', font: FONTS.media, size: 22, color: TENUE});
+        place(b, PW - MG - b.w, top + 16);
+        fadeIn(b.layer, sec(14), sec(10));
+      }
+      return top;
+    }
+
+    // ── la página, persistente
+    var page = proj.items.addComp('PAGINA', PW, PH, 1, sec(M.duration), FPS);
+    page.parentFolder = F.escenas;
+    var bg = newShapeLayer(page, 'FONDO · oscuro');
+    linkFill(addRect(bg, 0, 0, PW, PH, 0, hex(WEB.oscuro), 'oscuro'), 'Oscuro');
+    var run = text(page, M.short.toUpperCase(), MG, 0, {name: 'CAPÍTULO', font: FONTS.texto, size: 22, color: SUAVE, tracking: 160});
+    place(run, MG, 36);
+    if (run.w > INW - 130) log('⚠ el nombre del capítulo no entra en la cabecera: usá `short` en data.ts');
+    for (var fi = 0; fi < n; fi++) {
+      var fo = text(page, (fi + 1 < 10 ? '0' : '') + (fi + 1) + ' / ' + (n < 10 ? '0' : '') + n, 0, 0, {name: 'FOLIO ' + (fi + 1), font: FONTS.slab, size: 26, color: BLANCO});
+      place(fo, PW - MG - fo.w, 33);
+      fo.layer.inPoint = sec(M.scenes[fi].from);
+      fo.layer.outPoint = sec(M.scenes[fi].to);
+    }
+    hairline(page, MG, PW - MG, HEAD_H - 2, 'FILETE · cabecera');
+    // Las 4 bandas, firma de la marca: abren el reel…
+    var first = M.scenes[0], last = M.scenes[n - 1];
+    var open = bandStrip(page, 0, 0, PW, 8, sec(2));
+    open.name = 'BANDAS · apertura';
+    open.outPoint = sec(first.to);
+    keys(open.property('ADBE Transform Group').property('ADBE Opacity'), [sec(first.to - 8), sec(first.to)], [100, 0]);
+    // …y lo cierran, cuando entra la marca.
+    var closeAt = last.at !== undefined ? last.at + 10 : last.from + 20;
+    var close = bandStrip(page, 0, PH - 8, PW, 8, sec(closeAt));
+    close.name = 'BANDAS · cierre';
+    close.inPoint = sec(closeAt);
+    bg.moveToEnd();
+
+    var PL = main.layers.add(page);
+    PL.name = 'PÁGINA';
+    PL.label = 9;
+    var pt = PL.property('ADBE Transform Group');
+    pt.property('ADBE Anchor Point').setValue([0, 0]);
+    pt.property('ADBE Position').setValue([PG.x, PG.y]);
+    pt.property('ADBE Opacity').expression =
+      'ease(time,0,Math.max(1,' + CTRL_REF + '.effect("Entrada (frames)")(1))*thisComp.frameDuration,0,100);';
+
+    // ── lo común de cada escena: filete menta + kicker, y el titular en la slab del logo
+    function edHeader(comp, s) {
+      var y = HEAD_H + 40;
+      var k = text(comp, s.kicker, MG + 62, y, {name: 'KICKER', font: FONTS.texto, size: 26, color: MENTA, tracking: 160, maxW: INW - 62});
+      revealChars(k.layer, sec(2), sec(9), false);
+      var rule = newShapeLayer(comp, 'FILETE · menta');
+      var rs = addStroke(addPath(rule, [[MG, y + k.h / 2], [MG + 44, y + k.h / 2]], false, 'filete'), MENTA, 3);
+      linkStroke(rs, 'Menta');
+      drawOn(rule.property('ADBE Root Vectors Group').property(1), sec(0), sec(8));
+      y += k.h + 28;
+      var big = s.kind === 'cierre';
+      var title = fitText(comp, s.title, MG, y, {name: 'TÍTULO', font: FONTS.slab, size: big ? 124 : 108, color: BLANCO, fitW: INW}, 80);
+      revealChars(title.layer, sec(3), sec(13), 4); // línea a línea
+      return y + title.h;
+    }
+
+    var ED = {};
+
+    /** La cifra es la imagen: se revela cuando la voz la dice. */
+    ED.numero = function (comp, s) {
+      var rowTop = pieRow(comp, s.pie, null);
+      var at = sec(s.at - s.from);
+      var num = text(comp, s.value, 0, 0, {name: 'NÚMERO', font: FONTS.slab, size: 520, color: MENTA});
+      var bottom = rowTop - 10;
+      place(num, MG - 8, bottom - num.h);
+      fadeIn(num.layer, at, sec(10), 40);
+      var x = MG - 8 + num.w + 30, yy = bottom - 20;
+      if (s.detalle) {
+        var det = text(comp, s.detalle, 0, 0, {name: 'DETALLE', font: FONTS.media, size: 30, leading: 39, color: SUAVE});
+        yy -= det.h;
+        place(det, x, yy);
+        fadeIn(det.layer, at + sec(8), sec(10), 14);
+        if (x + det.w > PW - MG) log('⚠ numero ' + s.key + ': el detalle no entra junto a la cifra');
+        yy -= 16;
+      }
+      var unit = fitText(comp, s.unit, x, 0, {name: 'UNIDAD', font: FONTS.slab, size: 84, color: BLANCO, fitW: PW - MG - x}, 48);
+      place(unit, x, yy - unit.h);
+      fadeIn(unit.layer, at + sec(4), sec(10), 20);
+    };
+
+    /** Foto a sangre con pie; GIF sobre gris; vertical a la derecha con su destacado. */
+    ED.medio = function (comp, s, top) {
+      var ratio = s.mediaSize[0] / s.mediaSize[1];
+      var fuente = s.fuente || s.credit;
+      if (s.note || ratio < 0.8) {
+        var bw = 300, bh = 520;
+        var md = mediaIn(comp, s, PW - bw, PH - bh, bw, bh, 'cover', false, 0);
+        fadeIn(md.layer, sec(4), sec(10));
+        var colW = PW - bw - MG - 30;
+        var yy = PH - 34;
+        if (fuente) {
+          var cr = text(comp, fuente, 0, 0, {name: 'FUENTE', font: FONTS.media, size: 22, color: TENUE, maxW: colW});
+          yy -= cr.h;
+          place(cr, MG, yy);
+          fadeIn(cr.layer, sec(14), sec(10));
+          yy -= 26;
+        }
+        if (s.note) {
+          var at = sec(s.note.at - s.from);
+          var nt = fitText(comp, s.note.text, MG, 0, {name: 'DESTACADO', font: FONTS.slab, size: 112, color: MENTA, fitW: colW}, 64);
+          yy -= nt.h;
+          place(nt, MG, yy);
+          fadeIn(nt.layer, at, sec(10), 24);
+          if (s.note.label) {
+            var lb = text(comp, s.note.label, 0, 0, {name: 'ETIQUETA', font: FONTS.texto, size: 22, color: SUAVE, tracking: 160, maxW: colW});
+            place(lb, MG, yy - 14 - lb.h);
+            fadeIn(lb.layer, at, sec(8));
+          }
+        }
+        return;
+      }
+      var rowTop = pieRow(comp, s.pie, fuente);
+      if (ratio > 1.2) {
+        var mh = Math.min(Math.round(PW / ratio), rowTop - top - 24);
+        var m2 = mediaIn(comp, s, 0, rowTop - mh, PW, mh, 'cover', false, 0);
+        fadeIn(m2.layer, sec(4), sec(10));
+        // Acercamiento lento que se detiene: se asienta, no corre en loop.
+        var sp = m2.layer.property('ADBE Transform Group').property('ADBE Scale');
+        var sc = sp.value[0];
+        keys(sp, [0, Math.min(sec(90), comp.duration)], [[sc, sc], [sc * 1.06, sc * 1.06]]);
+        return;
+      }
+      // Ilustración o GIF: sobre un bloque gris a sangre.
+      var gh = Math.min(470, rowTop - top - 24), pad = 35;
+      var block = newShapeLayer(comp, 'BLOQUE · gris');
+      linkFill(addRect(block, 0, rowTop - gh, PW, gh, 0, hex(WEB.gris), 'gris'), 'Gris');
+      block.moveToEnd();
+      fadeIn(block, sec(2), sec(8));
+      var m3 = mediaIn(comp, s, MG, rowTop - gh + pad, INW, gh - pad * 2, 'contain', false, 0);
+      fadeIn(m3.layer, sec(6), sec(10));
+    };
+
+    /** Renglones con filete: cada uno se escribe cuando la voz lo nombra. */
+    ED.opciones = function (comp, s) {
+      var rowH = 152, nOpt = s.options.length;
+      var bottom = PH - 30, anyMarked = false;
+      for (var q = 0; q < nOpt; q++) if (s.options[q].marked) anyMarked = true;
+      for (var i = 0; i < nOpt; i++) {
+        var o = s.options[i];
+        var at = sec(o.at - s.from);
+        var y = bottom - (nOpt - i) * rowH;
+        var col = o.marked ? MENTA : (anyMarked ? SUAVE : BLANCO);
+        drawOn(hairline(comp, MG, PW - MG, y, 'FILETE · ' + o.text).property('ADBE Root Vectors Group').property(1), at, at + sec(10));
+        var lt = text(comp, 'abc'.charAt(i), 0, 0, {name: 'LETRA ' + (i + 1), font: FONTS.texto, size: 26, color: o.marked ? MENTA : TENUE});
+        var tx = fitText(comp, o.text, MG + 70, 0, {name: 'OPCIÓN · ' + o.text, font: FONTS.slab, size: 92, color: col, fitW: INW - 70}, 56);
+        place(tx, MG + 70, y + (rowH - tx.h) / 2 + 4);
+        place(lt, MG, y + (rowH - tx.h) / 2 + 4 + tx.h - lt.h - 8);
+        fadeIn(lt.layer, at, sec(8));
+        revealChars(tx.layer, at + sec(2), sec(12), false);
+      }
+      hairline(comp, MG, PW - MG, bottom, 'FILETE · base');
+    };
+
+    /** El cierre firma con la marca, en la tipografía del logo, y la única flecha del reel. */
+    ED.cierre = function (comp, s) {
+      var at = sec(s.at - s.from);
+      var bottom = PH - 8 - 44;
+      var brand = text(comp, s.button, 0, 0, {name: 'MARCA', font: FONTS.marca, size: 96, color: BLANCO});
+      place(brand, MG, bottom - brand.h);
+      fadeIn(brand.layer, at + sec(8), sec(12), 20);
+      var arrow = newShapeLayer(comp, 'FLECHA · menta');
+      var ax = MG + brand.w + 46, ay0 = bottom - brand.h + 10, ay1 = bottom - 6;
+      var a1 = addPath(arrow, [[ax, ay0], [ax, ay1]], false, 'flecha');
+      mintStroke(a1, 6);
+      drawOn(a1, at + sec(16), at + sec(26));
+      var a2 = addPath(arrow, [[ax - 18, ay1 - 18], [ax, ay1], [ax + 18, ay1 - 18]], false, 'punta');
+      mintStroke(a2, 6);
+      drawOn(a2, at + sec(22), at + sec(30));
+      var lineY = bottom - brand.h - 36;
+      drawOn(hairline(comp, MG, PW - MG, lineY, 'FILETE · firma').property('ADBE Root Vectors Group').property(1), at + sec(4), at + sec(16));
+      var sup = text(comp, s.supporting, 0, 0, {name: 'APOYO', font: FONTS.media, size: 44, leading: 55, color: CLARO, maxW: INW});
+      place(sup, MG, lineY - 40 - sup.h);
+      fadeIn(sup.layer, at, sec(12), 18);
+    };
+
+    var done = 0;
+    for (var si2 = 0; si2 < n; si2++) {
+      var sc2 = M.scenes[si2];
+      if (!ED[sc2.kind]) { log('✗ sin constructor editorial para ' + sc2.kind + ' (' + sc2.key + ')'); continue; }
+      var pre2 = proj.items.addComp(sc2.kind + '_' + sc2.key, PW, PH, 1, sec(sc2.to - sc2.from), FPS);
+      pre2.parentFolder = F.escenas;
+      pre2.bgColor = hex(WEB.oscuro);
+      var okScene = soft(sc2.kind + ':' + sc2.key, function () {
+        var top = edHeader(pre2, sc2);
+        ED[sc2.kind](pre2, sc2, top);
+        return true;
+      });
+      if (!okScene) log('✗ ' + sc2.kind + ':' + sc2.key + ' quedó incompleto');
+      var L2 = main.layers.add(pre2);
+      L2.name = 'ESCENA · ' + sc2.key;
+      L2.startTime = sec(sc2.from);
+      L2.label = 11;
+      var t2 = L2.property('ADBE Transform Group');
+      t2.property('ADBE Anchor Point').setValue([0, 0]);
+      t2.property('ADBE Position').setValue([PG.x, PG.y]);
+      // El contenido saliente se funde; el entrante se revela sobre la misma página.
+      var isLast = si2 === n - 1;
+      t2.property('ADBE Opacity').expression =
+        'var d=thisComp.frameDuration;var fo=Math.max(1,' + CTRL_REF + '.effect("Salida (frames)")(1))*d;' +
+        'Math.min(ease(time-inPoint,0,3*d,0,100),' + (isLast ? '100' : 'ease(outPoint-time,0,fo,0,100)') + ');';
+      done++;
+    }
+    return done;
+  }
+
   var built = 0;
   var S = M.scenes;
+  if (EDITORIAL) built = buildEditorial();
   var ENTRY_DELAY = 8; // la tarjeta nueva entra cuando el barrido ya la tapó
-  for (var si = 0; si < S.length; si++) {
+  for (var si = 0; !EDITORIAL && si < S.length; si++) {
     var s = S[si];
     var builder = BUILD[s.kind];
     if (!builder) { log('✗ sin constructor para ' + s.kind + ' (' + s.key + ')'); continue; }
@@ -766,7 +1031,7 @@ function buildReel() {
   // ─────────────────────────────────────────────── barridos entre escenas
   // Al empezar cada escena, un barrido de bandas diagonales (el encabezado de
   // la web) cruza la caja de la tarjeta: tapa el cambio y marca el ritmo.
-  soft('barridos', function () {
+  if (!EDITORIAL) soft('barridos', function () {
     var n = 0;
     for (var i = 0; i < S.length; i++) {
       var b = S[i].from;
@@ -869,8 +1134,9 @@ function buildReel() {
         an.name = 'Palabra activa';
         an.property('ADBE Text Animator Properties').addProperty('ADBE Text Fill Color');
         var fc = an.property('ADBE Text Animator Properties').property('ADBE Text Fill Color');
-        fc.setValue(hex(WEB.tinta));
-        fc.expression = colorExpr('Tinta');
+        // Clásico: tinta sobre la pastilla menta. Editorial: la palabra en menta, subrayada.
+        fc.setValue(hex(EDITORIAL ? WEB.menta : WEB.tinta));
+        fc.expression = colorExpr(EDITORIAL ? 'Menta' : 'Tinta');
         var sel = an.property('ADBE Text Selectors').addProperty('ADBE Text Selector');
         var adv = sel.property('ADBE Text Range Advanced');
         adv.property('ADBE Text Range Units').setValue(2);  // índice
@@ -897,11 +1163,14 @@ function buildReel() {
         var fill = g.property('ADBE Vectors Group').property('ADBE Vector Graphic - Fill');
         fill.property('ADBE Vector Fill Color').setValue(hex(WEB.menta));
         fill.property('ADBE Vector Fill Color').expression = colorExpr('Menta');
-        rect.property('ADBE Vector Rect Roundness').setValue(12);
-        rect.property('ADBE Vector Rect Size').expression = ACTIVE + BX + 'k<0?[0,0]:[B[k][2]+18,' + Math.round(fs * 1.22) + '];';
+        // Clásico: pastilla del alto del renglón. Editorial: un filete de 5 px bajo la palabra.
+        var chipSize = EDITORIAL ? '[B[k][2],5]' : '[B[k][2]+18,' + Math.round(fs * 1.22) + ']';
+        var chipY = EDITORIAL ? 'B[k][1]+' + Math.round(fs * 0.34 + 13) : 'B[k][1]';
+        rect.property('ADBE Vector Rect Roundness').setValue(EDITORIAL ? 2 : 12);
+        rect.property('ADBE Vector Rect Size').expression = ACTIVE + BX + 'k<0?[0,0]:' + chipSize + ';';
         var ct = chip.property('ADBE Transform Group');
         ct.property('ADBE Anchor Point').setValue([0, 0]);
-        ct.property('ADBE Position').expression = ACTIVE + BX + 'k<0?[-1000,-1000]:L.toComp([B[k][0],B[k][1]]);';
+        ct.property('ADBE Position').expression = ACTIVE + BX + 'k<0?[-1000,-1000]:L.toComp([B[k][0],' + chipY + ']);';
         ct.property('ADBE Opacity').expression = ACTIVE + BX + 'k<0?0:L.transform.opacity*' + CTRL_REF + '.effect("Karaoke")(1);';
         chip.moveAfter(tl);
       });
@@ -1016,7 +1285,7 @@ function buildReel() {
   masterLayer.locked = true;
 
   // ─────────────────────────────────────────────────────────────── guardar
-  var out = File(ROOTDIR.fsName + '/' + MAIN + '.aep');
+  var out = File(ROOTDIR.fsName + '/' + MAIN + (EDITORIAL ? '-editorial' : '') + '.aep');
   proj.save(out);
   main.openInViewer();
   app.endUndoGroup();

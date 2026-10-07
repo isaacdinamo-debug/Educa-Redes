@@ -8,7 +8,7 @@ node_modules/
 reels/*/media/
 reels/*/assets/
 reels/*/render/
-reels/*/revision/stills/
+reels/*/revision*/stills/
 reels/*/*.aep
 reels/*/*.aep */
 models/
@@ -21,7 +21,7 @@ models/
 *.jpeg
 *.jpg
 # …salvo la hoja de contacto, que es la evidencia de revisión
-!reels/*/revision/contacto.jpg
+!reels/*/revision*/contacto.jpg
 
 # Restos locales de la versión Remotion (medios, renders, node_modules): ver docs/MIGRACION.md
 educaplay-redes/

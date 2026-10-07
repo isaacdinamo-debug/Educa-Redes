@@ -13,11 +13,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {ESCENARIO, FUENTES, PALETA, loadReel, parseArgs, probe, REPO} from './lib/comun.mjs';
+import {ESCENARIO, FUENTES, PALETA, loadReel, paginar, parseArgs, probe, REPO} from './lib/comun.mjs';
 
 const main = async () => {
-  const {code} = parseArgs();
-  const {REEL, words, captions, dir} = await loadReel(code);
+  const {code, flags} = parseArgs();
+  const editorial = !!flags.editorial;
+  const loaded = await loadReel(code);
+  const {REEL, words, dir} = loaded;
+  // Editorial: los cortes hechos a mano, fundidos hasta que cada página dure 1 s.
+  const captions = editorial
+    ? paginar(words, {piso: ESCENARIO.editorial.pisoSubtitulo, base: loaded.captions.map((c) => c.words)})
+    : loaded.captions;
   const assetsDir = path.join(dir, 'assets');
   fs.mkdirSync(assetsDir, {recursive: true});
 
@@ -44,7 +50,9 @@ const main = async () => {
   const manifest = {
     code: REEL.code,
     generatedBy: 'scripts/export-ae.mjs — no editar a mano: se regenera',
+    variant: editorial ? 'editorial' : 'clasico',
     title: REEL.title,
+    short: REEL.short ?? REEL.title,
     series: REEL.series,
     fps: REEL.fps,
     width: ESCENARIO.canvas.width,
@@ -55,7 +63,8 @@ const main = async () => {
     fonts: FUENTES,
     stage: {
       tarjeta: ESCENARIO.tarjeta,
-      subtitulos: ESCENARIO.subtitulos,
+      subtitulos: editorial ? ESCENARIO.editorial.subtitulos : ESCENARIO.subtitulos,
+      ...(editorial ? {pagina: ESCENARIO.editorial.pagina, margen: ESCENARIO.editorial.margen} : {}),
       seguro: ESCENARIO.seguro,
       pastilla: ESCENARIO.pastilla,
     },
@@ -65,7 +74,7 @@ const main = async () => {
       return {from: p.from, to: p.to, text: ws.map((w) => w[0]).join(' '), words: ws};
     }),
   };
-  const out = path.join(dir, 'manifest.json');
+  const out = path.join(dir, editorial ? 'manifest.editorial.json' : 'manifest.json');
   fs.writeFileSync(out, JSON.stringify(manifest, null, 1) + '\n');
   console.log(`✓ ${path.relative(REPO, out)}: ${scenes.length} escenas, ${manifest.captions.length} subtítulos, ` +
     `${words.length} palabras, ${gifs} GIF → .mov, ${duration} frames`);

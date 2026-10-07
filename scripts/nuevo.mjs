@@ -23,12 +23,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {ESCENARIO, hasAudio, parseArgs, probe, REPO, reelDir, writeJsonLines} from './lib/comun.mjs';
-
-/** Paginado: hasta 4 palabras (el piso de lectura es de 3 a 5), corte en puntuación o pausa. */
-const MAX_WORDS = 4;
-const PAUSE = 8;      // frames de silencio que abren página nueva
-const TAIL = 6;       // frames que la página queda después de su última palabra
+import {ESCENARIO, hasAudio, paginar, parseArgs, probe, REPO, reelDir, writeJsonLines} from './lib/comun.mjs';
 
 const findModel = (flag) => {
   const candidates = [flag, process.env.WHISPER_MODEL,
@@ -79,25 +74,8 @@ const transcribe = (master, model, fps) => {
   }
 };
 
-const paginate = (words) => {
-  const pages = [];
-  let start = 0;
-  for (let i = 0; i < words.length; i++) {
-    const n = i - start + 1;
-    const next = words[i + 1];
-    const endsPhrase = /[.,;:!?…]$/.test(words[i][0]);
-    const pause = next && next[1] - words[i][2] >= PAUSE;
-    if (!next || endsPhrase || pause || n >= MAX_WORDS) {
-      pages.push({from: words[start][1], to: words[i][2], words: [start, i + 1]});
-      start = i + 1;
-    }
-  }
-  for (let i = 0; i < pages.length; i++) {
-    const limit = pages[i + 1] ? pages[i + 1].from : Infinity;
-    pages[i].to = Math.min(pages[i].to + TAIL, limit);
-  }
-  return pages;
-};
+/** Paginado con piso de 1 s (ver `paginar` en lib/comun.mjs). */
+const paginate = (words) => paginar(words, {piso: ESCENARIO.editorial.pisoSubtitulo});
 
 const main = () => {
   const {code, flags} = parseArgs();

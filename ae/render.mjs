@@ -3,6 +3,7 @@
  *
  *   npm run render -- <CODE>                 → reels/<CODE>/render/<CODE>.mp4
  *   npm run render -- <CODE> --muestra 15    (sólo los primeros 15 s)
+ *   npm run render -- <CODE> --editorial     (la variante editorial → <CODE>-editorial.mp4)
  *
  * 1. aerender renderiza la comp <CODE> del .aep (módulo de salida por defecto
  *    de AE; funciona con After Effects abierto);
@@ -29,15 +30,16 @@ const main = () => {
   const {code, flags} = parseArgs();
   if (!code) throw new Error('Uso: npm run render -- <CODE> [--muestra 15]');
   const dir = path.join(REPO, 'reels', code);
-  const aep = path.join(dir, `${code}.aep`);
-  if (!fs.existsSync(aep)) throw new Error(`Falta ${path.relative(REPO, aep)}: corré npm run ae -- ${code}`);
-  const M = readJson(path.join(dir, 'manifest.json'));
+  const ed = flags.editorial ? '-editorial' : '';
+  const aep = path.join(dir, `${code}${ed}.aep`);
+  if (!fs.existsSync(aep)) throw new Error(`Falta ${path.relative(REPO, aep)}: corré npm run ae -- ${code}${flags.editorial ? ' --editorial' : ''}`);
+  const M = readJson(path.join(dir, flags.editorial ? 'manifest.editorial.json' : 'manifest.json'));
   const sample = flags.muestra ? Math.round(Number(flags.muestra) * M.fps) : null;
   const frames = sample ? Math.min(sample, M.duration) : M.duration;
 
   const outDir = path.join(dir, 'render');
   fs.mkdirSync(outDir, {recursive: true});
-  const out = path.join(outDir, sample ? `${code}-muestra-${flags.muestra}s.mp4` : `${code}.mp4`);
+  const out = path.join(outDir, sample ? `${code}${ed}-muestra-${flags.muestra}s.mp4` : `${code}${ed}.mp4`);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'educaplay-render-'));
   try {
     console.log(`▶ aerender ${code} · ${frames} frames`);

@@ -67,3 +67,33 @@ a derecha), kicker menta en mayúsculas, título blanco y subrayado menta con la
 | `Karaoke` | Prende o apaga el resaltado de la palabra activa |
 
 La capa `GUIA · zonas seguras` (guía, no se renderiza) marca en rojo lo que tapa la interfaz.
+
+## Variante editorial
+
+Salió de la auditoría de diseño del 7/10/2026. Misma marca, misma paleta y misma familia Museo, con
+criterio de página: **el reel es una página que se transforma**. Convive con el armado clásico; no
+lo reemplaza.
+
+```bash
+npm run export:ae -- <CODE> --editorial   # manifest.editorial.json (subtítulos repaginados)
+npm run ae        -- <CODE> --editorial   # <CODE>-editorial.aep y revision-editorial/
+npm run render    -- <CODE> --editorial   # render/<CODE>-editorial.mp4
+```
+
+| | Clásico | Editorial |
+|---|---|---|
+| Superficie | tarjeta oscura + baldosas, con radio y sombra | **una página** oscura fija, x 90–930, y 300–1310, sin radio ni sombra |
+| Titulares | Museo Sans Rounded 900 | **Museo 700**, la slab del logo; 108 px que se achica hasta 80 si no entra |
+| Cabecera | — | nombre corto del capítulo (`short`) y folio «03 / 07» |
+| Recursos | en baldosa gris con marco | foto a sangre con pie y fuente; GIF sobre bloque gris; vertical con destacado |
+| Opciones | baldosas con pop | renglones con filete que se escriben con la voz |
+| Bandas | en cada escena y en los barridos | sólo en la apertura y en el cierre |
+| Cambio de escena | barrido de 4 bandas | el contenido se funde y el nuevo se revela línea a línea |
+| Karaoke | tinta sobre pastilla menta | palabra en **menta, subrayada** |
+| Subtítulos | las páginas de `captions.json`, en y 1090–1290 | fundidas hasta durar 1 s o más, en y 1390–1560 |
+
+Campos de `data.ts` que sólo usa esta variante: `short` (reel), `pie` y `fuente` (medio), `detalle`
+y `pie` (numero), `note.label`. La geometría está en `ESCENARIO.editorial`.
+
+En `CONTROL` quedan los colores, `Entrada`, `Salida`, `Subtítulos` y `Karaoke`. No hay
+deslizamiento, rebote ni sombra.

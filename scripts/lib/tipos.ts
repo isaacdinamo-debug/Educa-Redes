@@ -25,6 +25,9 @@ export type NumeroScene = SceneBase & {
   unit: string;
   /** Frame de la palabra que dice el número. */
   at: number;
+  /** Variante editorial: una línea de contexto junto al número y el pie de la página. */
+  detalle?: string;
+  pie?: string;
 };
 
 /** Foto, GIF o video del capítulo en la baldosa gris, debajo del título. */
@@ -34,8 +37,11 @@ export type MedioScene = SceneBase & {
   media: string;
   rank: Rank;
   credit?: string;
-  /** Pastilla que aparece junto a un medio vertical, en su frame. */
-  note?: {text: string; at: number};
+  /** Variante editorial: pie de foto (qué se ve) y, a su derecha, la fuente (si no hay, va `credit`). */
+  pie?: string;
+  fuente?: string;
+  /** Destacado que aparece junto a un medio vertical, en su frame. `label` es su etiqueta chica. */
+  note?: {text: string; at: number; label?: string};
 };
 
 /** Dos o tres opciones que aparecen cuando la voz las nombra. */
@@ -58,6 +64,8 @@ export type Reel = {
   code: string;
   /** Título del capítulo del que sale el reel. */
   title: string;
+  /** Nombre corto del capítulo para la cabecera de la variante editorial (si no, va `title`). */
+  short?: string;
   series: string;
   fps: 25;
   /** Ruta dentro de reels/<CODE>/media/. */

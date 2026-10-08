@@ -1,0 +1,17 @@
+{
+  "name": "educaplay-redes",
+  "private": true,
+  "type": "module",
+  "description": "Reels verticales de Educaplay Secundaria (1080×1920, 25 fps) armados en After Effects",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "nuevo": "node --experimental-strip-types --no-warnings scripts/nuevo.mjs",
+    "check": "node --experimental-strip-types --no-warnings scripts/check.mjs",
+    "export:ae": "node --experimental-strip-types --no-warnings scripts/export-ae.mjs",
+    "ae": "node ae/run.mjs",
+    "render": "node ae/render.mjs",
+    "publicar": "node --experimental-strip-types --no-warnings scripts/publicar.mjs"
+  }
+}

@@ -1,60 +1,39 @@
-# EducaPlay Redes
+# Educaplay Redes
 
-Skill para producir **reels verticales educativos (1080×1920)** en Remotion para el ecosistema de **EducaPlay Secundaria (Corrientes)**.
+Reels verticales (1080×1920, 25 fps) de **Educaplay Secundaria (Corrientes)** para Instagram Reels,
+TikTok y YouTube Shorts, armados en **Adobe After Effects**. A partir del máster, un `data.ts` con
+las escenas y la transcripción palabra por palabra, un constructor en ExtendScript arma un `.aep`
+editable con la estética de la plataforma Educaplay y subtítulos con karaoke.
 
-El paquete del skill y el proyecto de referencia funcional viven en [`educaplay-redes/`](educaplay-redes/).
+Reel de referencia: **AMB26-04-REEL**, adelanto de «Plan B: protocolo para una inundación» (45 s,
+7 escenas, 31 subtítulos, 78 palabras).
 
-## Variante elegida: estilo cuaderno
+## Instalación (una vez por máquina)
 
-Isaac eligió la muestra **Estilo cuaderno · 15 segundos** el 16 de septiembre de 2026 como referencia visual para continuar el trabajo. La composición es `EducaPlayCuaderno`, implementada en `src/Notebook.tsx`. La selección corresponde a esta muestra de 15 segundos; el reel completo sigue siendo una composición independiente.
+- macOS con **Adobe After Effects 2026**;
+- **Node ≥ 22.6**, `ffmpeg`/`ffprobe` y `whisper-cli` (whisper.cpp) con el modelo
+  `ggml-large-v3-turbo.bin` (se usa el de `EducaPlay-After-Effects/motor/models/` si está);
+- las fuentes **Museo** y **Museo Sans Rounded** instaladas (AE las busca por nombre PostScript).
 
-Para revisar y reproducir la variante elegida:
+No hay dependencias de npm.
 
-```bash
-cd educaplay-redes/remotion
-npm install
-# Preparar el máster y los recursos locales indicados en src/data.ts y src/layout.ts.
-npm run check -- --notebook
-npm run render:cuaderno
-ffmpeg -i out/cuaderno-15s/render.mp4 -i public/media/master.mp4 -map 0:v:0 -map 1:a:0 -c copy -t 15 -movflags +faststart out/cuaderno-15s/propuesta-cuaderno-15s.mp4
-```
-
-El resultado es `out/cuaderno-15s/propuesta-cuaderno-15s.mp4`, con el audio original del máster. Consultar [las decisiones visuales y de movimiento](educaplay-redes/remotion/PROPUESTA_CUADERNO.md). Los medios de entrada y el video renderizado se conservan localmente y no se incluyen en Git.
-
----
-
-## Estructura del Repositorio
-
-- **`educaplay-redes/SKILL.md`**: Definición de la habilidad, reglas de oro, zonas seguras y guías editoriales.
-- **`educaplay-redes/references/production-contract.md`**: Contrato técnico de layout, tipos TypeScript, tipografía y checklist.
-- **`educaplay-redes/agents/openai.yaml`**: Metadatos de interfaz para Codex / Antigravity.
-- **`educaplay-redes/remotion/`**: Proyecto Remotion completamente funcional y reproducible:
-  - Subtítulos estilo karaoke sincronizados palabra por palabra con Whisper DTW.
-  - Sonda DOM automática (`__EDUCA_QA__`) para control de calidad estricto de geometría, fuentes y textos.
-  - Tipografías institucionales Museo Display, Museo Text y Museo Light incluidas en `public/fonts/`.
-
----
-
-## Flujo del reel completo y prototipo anterior
+## Flujo de un reel
 
 ```bash
-cd educaplay-redes/remotion
-
-# 1. Instalar dependencias
-npm install
-
-# 2. Asegurar carpeta de medios y máster
-mkdir -p public/media/resources
-# Copiar el máster vertical como public/media/master.mp4
-
-# 3. Comprobación de QA automática (60 fotogramas clave)
-npm run check
-
-# 4. Renderizado de muestra rápida (primeros 15 segundos)
-npm run render:sample
-
-# 5. Renderizado final del reel completo (1080×1920 @ 25 fps)
-npm run render
+# 0. copiar el máster a reels/<CODE>/media/master.mp4 y los recursos a reels/<CODE>/media/recursos/
+npm run nuevo      -- AMB26-05-REEL     # 1. medir, transcribir (Whisper), paginar, borrador de data.ts
+#                                       # 2. escribir las escenas en reels/<CODE>/data.ts
+npm run check      -- AMB26-05-REEL     # 3. datos, zonas seguras, contraste, marca
+npm run export:ae  -- AMB26-05-REEL     # 4. manifiesto para AE
+npm run ae         -- AMB26-05-REEL     # 5. armar en AE + stills + chequeo → revision/contacto.jpg
+npm run render     -- AMB26-05-REEL     # 6. MP4 final → reels/<CODE>/render/<CODE>.mp4
+npm run publicar   -- AMB26-05-REEL     # 7. si todo pasa: commit, push y PR
 ```
 
-Los archivos pesados de producción (másters crudos y renders `.mp4`) permanecen fuera del repositorio según el [`.gitignore`](.gitignore); la carpeta `public/media/resources/.gitkeep` preserva la estructura de entrada para nuevos episodios.
+En **Antigravity**, todo esto es el workflow **`/reel-ae`**; lo sigue la skill `educaplay-redes`.
+
+## Documentación
+
+- [`AGENTS.md`](AGENTS.md): mapa del repo y reglas duras.
+- [`docs/ESTETICA.md`](docs/ESTETICA.md): escenario 9:16, piezas, karaoke y la capa `CONTROL`.
+- [`docs/MIGRACION.md`](docs/MIGRACION.md): qué se trajo del flujo Remotion y qué se retiró.

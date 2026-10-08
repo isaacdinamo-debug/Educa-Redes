@@ -25,3 +25,7 @@ models/
 
 # Restos locales de la versión Remotion (medios, renders, node_modules): ver docs/MIGRACION.md
 educaplay-redes/
+
+# After Effects: guardado automático y registros de aerender
+reels/*/Guardado autom*/
+reels/*/Auto-Save/
